@@ -115,10 +115,9 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   min-width: 0;
 }
 .category-tabs {
-  display: flex; gap: 6px; flex: 1; overflow-x: auto;
-  position: relative; scrollbar-width: none; min-width: 0;
+  display: flex; gap: 6px; flex: 1;
+  flex-wrap: wrap; position: relative; min-width: 0;
 }
-.category-tabs::-webkit-scrollbar { display: none; }
 
 /* 右侧按钮组（始终固定在视图内） */
 .cat-bar-actions {
