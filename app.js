@@ -39,8 +39,82 @@ let nextId = Math.max(0, ...tags.map(t => t.id), ...categories.map(c => c.id)) +
 let dragFromLibrary = null;
 let catEditMode = false;
 
-// 分类拖拽状态（document 级别事件共享）
-let _catDrag = { active: false, el: null, idx: null, startX: 0, startY: 0 };
+// 分类拖拽状态
+let _catDrag = { active: false, el: null, idx: null, insertIdx: null };
+
+// 词库拖拽状态
+let _libDrag = { active: false, el: null, idx: null, insertIdx: null };
+
+// ========== 通用竖条光标系统（三区共用）==========
+const _bars = {}; // { canvas: DOM, library: DOM, category: DOM }
+
+function getBar(name) {
+  if (!_bars[name]) {
+    const bar = document.createElement('div');
+    bar.className = 'insert-bar';
+    document.body.appendChild(bar);
+    _bars[name] = bar;
+  }
+  return _bars[name];
+}
+
+// 通用：计算间隙插入位置 + 更新光标和让位效果
+// items: DOM 元素数组, mouseX/Y: 鼠标坐标, barName: 光标名称, dragIdx: 被拖元素索引
+// 返回 insertIdx
+function updateInsertBar(items, mouseX, mouseY, barName, dragIdx) {
+  const bar = getBar(barName);
+
+  let insertIdx = 0;
+  for (let i = 0; i < items.length; i++) {
+    const r = items[i].getBoundingClientRect();
+    if (mouseX < r.left + r.width / 2) { insertIdx = i; break; }
+    insertIdx = i + 1;
+  }
+
+  // 清除旧状态
+  items.forEach(t => t.classList.remove('push-left', 'push-right'));
+  bar.classList.remove('visible');
+
+  // 没移动则隐藏
+  if (insertIdx === dragIdx) { bar.style.display = 'none'; return insertIdx; }
+  bar.style.display = '';
+  bar.classList.add('visible');
+  bar.style.position = 'fixed';
+
+  if (insertIdx === 0) {
+    const first = items[0];
+    if (first) {
+      const r = first.getBoundingClientRect();
+      bar.style.left = (r.left - 6) + 'px';
+      bar.style.top = (r.top + r.height / 2 - 18) + 'px';
+    }
+    items[0]?.classList.add('push-right');
+  } else if (insertIdx >= items.length) {
+    const last = items[items.length - 1];
+    if (last) {
+      const r = last.getBoundingClientRect();
+      bar.style.left = (r.right + 6) + 'px';
+      bar.style.top = (r.top + r.height / 2 - 18) + 'px';
+    }
+    items[items.length - 1]?.classList.add('push-left');
+  } else {
+    const leftEl = items[insertIdx - 1];
+    const rightEl = items[insertIdx];
+    if (leftEl && rightEl) {
+      const lr = leftEl.getBoundingClientRect();
+      bar.style.left = ((lr.right + rightEl.getBoundingClientRect().left) / 2 - 2.5) + 'px';
+      bar.style.top = (lr.top + lr.height / 2 - 18) + 'px';
+      leftEl.classList.add('push-left');
+      rightEl.classList.add('push-right');
+    }
+  }
+  return insertIdx;
+}
+
+function hideBar(name) {
+  const bar = _bars[name];
+  if (bar) { bar.classList.remove('visible'); bar.style.display = 'none'; }
+}
 
 // ========== 初始化 ==========
 function init() {
@@ -53,6 +127,7 @@ function init() {
   bindEvents();
   initResize();
   initCatDragListeners(); // 分类拖拽的 document 级事件只绑一次
+  initLibDragListeners(); // 词库拖拽的 document 级事件只绑一次
 }
 
 // ========== 渲染 ==========
@@ -98,7 +173,7 @@ function renderLibrary() {
     bindCardEvents(); return;
   }
   el.innerHTML = list.map((t, i) =>
-    `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}" draggable="true">
+    `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
       <span class="fav-dot"></span>
       <span class="cn">${t.cn}</span>
       <div class="actions">
@@ -122,14 +197,18 @@ function renderCanvas() {
   bindCanvasMouseDrag();
 }
 
-// ========== 分类 Tab 拖拽排序（仅编辑模式）==========
-// 原则：mousedown 绑在每个 tab 上，mousemove/mouseup 只绑一次在 document 上
+// ========== 分类 Tab 拖拽排序（间隙插入模式）==========
+
+// 创建竖条光标元素（挂到 body，避免被父容器 overflow 裁剪）
+function ensureInsertBar() {
+  getBar('category'); // 预创建
+}
 
 function bindTabMouseDrag() {
+  ensureInsertBar();
   const allTabs = $$('.tab[data-id]');
 
   allTabs.forEach((tab, idx) => {
-    // 固定分类不可拖
     if (tab.classList.contains('fixed')) {
       tab.onmousedown = null;
       tab.style.cursor = 'default';
@@ -139,117 +218,93 @@ function bindTabMouseDrag() {
     tab.style.cursor = catEditMode ? 'grab' : 'pointer';
 
     tab.onmousedown = (e) => {
-      // 非编辑模式、非左键、点击操作按钮 → 不触发拖拽
       if (!catEditMode || e.button !== 0) return;
       if (e.target.closest('.cat-actions')) return;
-
       e.preventDefault();
 
       _catDrag.active = true;
       _catDrag.el = tab;
       _catDrag.idx = idx;
-      _catDrag.startX = e.clientX;
-      _catDrag.startY = e.clientY;
+      _catDrag.insertIdx = idx; // 默认在原位置
 
-      // 视觉反馈：半透明
-      tab.style.opacity = '0.35';
-      tab.style.zIndex = '100';
-      tab.style.transform = 'scale(1.08)';
-      tab.style.boxShadow = '0 4px 12px rgba(233,69,96,0.5)';
+      tab.classList.add('is-dragging');
     };
   });
 }
 
 function initCatDragListeners() {
-  // mousemove：实时高亮目标位置
+  let rafId = null;
+
   document.addEventListener('mousemove', (e) => {
     if (!_catDrag.active || !_catDrag.el) return;
 
-    const tabs = $$('.tab[data-id]');
-    // 清除旧的高亮
-    tabs.forEach(t => {
-      t.classList.remove('drag-over');
-      t.style.transform = '';
-      t.style.boxShadow = '';
-      if (t !== _catDrag.el) t.style.opacity = '';
+    // 用 rAF 节流，避免卡顿
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      updateCatDragPosition(e.clientX, e.clientY);
     });
-
-    // 找到鼠标下方的目标 tab（排除固定分类和自己）
-    let hitIdx = -1;
-    for (let i = 0; i < tabs.length; i++) {
-      const t = tabs[i];
-      if (t === _catDrag.el || t.classList.contains('fixed')) continue;
-      const r = t.getBoundingClientRect();
-      if (e.clientX >= r.left && e.clientX <= r.right &&
-          e.clientY >= r.top && e.clientY <= r.bottom) {
-        hitIdx = i;
-        break;
-      }
-    }
-
-    if (hitIdx >= 0) {
-      const target = tabs[hitIdx];
-      target.classList.add('drag-over');
-      // 根据鼠标在目标左边还是右边决定偏移方向
-      const midX = target.getBoundingClientRect().left + target.offsetWidth / 2;
-      target.style.transform = e.clientX < midX ? 'translateX(16px)' : 'translateX(-16px)';
-      target.style.boxShadow = '0 0 0 2px var(--blue), 0 0 12px rgba(59,130,246,0.4)';
-    }
   }, { passive: true });
 
-  // mouseup：执行排序
-  document.addEventListener('mouseup', (e) => {
+  document.addEventListener('mouseup', () => {
     if (!_catDrag.active) return;
     _catDrag.active = false;
 
-    // 恢复被拖元素的样式
-    if (_catDrag.el) {
-      _catDrag.el.style.opacity = '';
-      _catDrag.el.style.zIndex = '';
-      _catDrag.el.style.transform = '';
-      _catDrag.el.style.boxShadow = '';
-    }
+    // 清理所有视觉状态
+    clearCatDragVisuals();
 
-    const tabs = $$('.tab[data-id]');
-    const targetTab = [...tabs].find(t => t.classList.contains('drag-over'));
+    // 执行排序
+    if (_catDrag.el && _catDrag.insertIdx !== null && _catDrag.insertIdx !== _catDrag.idx) {
+      const srcId = +_catDrag.el.dataset.id;
+      const srcIdx = categories.findIndex(c => c.id === srcId);
 
-    // 清理所有高亮
-    tabs.forEach(t => {
-      t.classList.remove('drag-over');
-      t.style.transform = '';
-      t.style.boxShadow = '';
-    });
-
-    // 如果有有效目标，执行排序
-    if (targetTab && _catDrag.el && targetTab !== _catDrag.el) {
-      const srcIdx = categories.findIndex(c =>
-        c.id === +_catDrag.el.dataset.id
-      );
-      const dstIdx = categories.findIndex(c =>
-        c.id === +targetTab.dataset.id
-      );
-
-      if (srcIdx >= 0 && dstIdx >= 0 && srcIdx !== dstIdx) {
-        // 判断插入目标前面还是后面
-        const targetRect = targetTab.getBoundingClientRect();
-        let finalIdx = dstIdx;
-        if (e.clientX > targetRect.left + targetRect.width / 2) {
-          finalIdx = dstIdx + 1;
-          if (finalIdx > srcIdx) finalIdx--;
-        } else {
-          if (finalIdx > srcIdx) finalIdx--;
-        }
+      if (srcIdx >= 0) {
+        let dstIdx = _catDrag.insertIdx;
+        // 补偿：如果往右拖且目标在源右边，需要-1（因为还没真正移除）
+        if (dstIdx > srcIdx) dstIdx--;
 
         const [moved] = categories.splice(srcIdx, 1);
-        categories.splice(Math.max(0, Math.min(finalIdx, categories.length - 1)), 0, moved);
+        categories.splice(Math.max(0, Math.min(dstIdx, categories.length)), 0, moved);
         Storage.set("categories", categories);
-        renderTabs(); // 重新渲染
+        renderTabs();
       }
     }
 
     _catDrag.el = null;
     _catDrag.idx = null;
+    _catDrag.insertIdx = null;
   });
+}
+
+// 核心：计算鼠标位置对应的插入索引，更新视觉效果（使用通用光标）
+function updateCatDragPosition(mouseX, mouseY) {
+  const tabsEl = document.getElementById('category-tabs');
+  const tabs = [...tabsEl.querySelectorAll('.tab[data-id]')];
+
+  let insertIdx = 0;
+  for (let i = 0; i < tabs.length; i++) {
+    const r = tabs[i].getBoundingClientRect();
+    if (mouseX < r.left + r.width / 2) { insertIdx = i; break; }
+    insertIdx = i + 1;
+  }
+
+  // 固定分类不能被跨越
+  const firstFixedIdx = categories.findIndex(c => c.fixed);
+  if (firstFixedIdx >= 0 && insertIdx <= firstFixedIdx) insertIdx = firstFixedIdx + 1;
+
+  _catDrag.insertIdx = insertIdx;
+  updateInsertBar(tabs, mouseX, mouseY, 'category', _catDrag.idx);
+}
+
+function clearCatDragVisuals() {
+  $$('.tab[data-id]').forEach(t => {
+    t.classList.remove('is-dragging', 'push-left', 'push-right');
+    t.style.opacity = '';
+    t.style.zIndex = '';
+    t.style.transform = '';
+    t.style.boxShadow = '';
+  });
+  hideBar('category');
 }
 
 // ========== 分类编辑操作（删除/编辑）==========
@@ -312,223 +367,153 @@ function bindCardEvents() {
   });
 }
 
-// ========== 词库内拖拽重排（HTML5 Drag） ==========
+// ========== 词库鼠标拖拽（统一绿色竖条光标）==========
 function bindLibraryDrag() {
-  const grid = $("#tag-grid");
-  let dragIdx = null;
-  let dragId = null;
+  const cards = $$('.tag-card[data-id]');
 
-  $$('.tag-card[data-id]').forEach(card => {
-    card.ondragstart = (e) => {
-      dragIdx = +card.dataset.idx;
-      dragId = +card.dataset.id;
+  cards.forEach((card, idx) => {
+    card.onmousedown = (e) => {
+      if (e.button !== 0 || e.target.closest('.actions')) return;
+      e.preventDefault();
+
+      _libDrag.active = true;
+      _libDrag.el = card;
+      _libDrag.idx = idx;
+      _libDrag.insertIdx = idx;
+
       card.classList.add('is-dragging');
-      e.dataTransfer.effectAllowed = "move";
-      e.dataTransfer.setData("text/plain", String(dragId));
-    };
-    card.ondragend = () => {
-      card.classList.remove('is-dragging');
-      clearDragOverState();
-      dragIdx = null; dragId = null;
-    };
-    card.ondragover = (e) => {
-      e.preventDefault();
-      if (dragId !== null && +card.dataset.id !== dragId) {
-        clearDragOverState();
-        card.classList.add('drag-over');
-      }
-    };
-    card.ondrop = (e) => {
-      e.preventDefault();
-      const dropIdx = +card.dataset.idx;
-      if (dragIdx !== null && dropIdx !== dragIdx && dragId !== null) {
-        // 获取当前视图列表
-        const kw = $("#search-input").value.trim().toLowerCase();
-        let viewList;
-        if (currentCatId === FAV_CAT_ID) {
-          viewList = tags.filter(t => t.favorited && (!kw || t.cn.includes(kw)));
-        } else {
-          viewList = tags.filter(t => t.categoryId === currentCatId && (!kw || t.cn.includes(kw)));
-        }
-        // 在视图列表中交换位置
-        const [moved] = viewList.splice(dragIdx, 1);
-        viewList.splice(dropIdx, 0, moved);
-        // 写回完整数组
-        if (currentCatId === FAV_CAT_ID) {
-          tags = [...tags.filter(t => !viewList.includes(t)), ...viewList];
-        } else {
-          tags = [...tags.filter(t => !viewList.includes(t)), ...viewList];
-        }
-        Storage.set("tags", tags); renderLibrary();
-      }
-      clearDragOverState();
-      dragIdx = null; dragId = null;
-    };
-  });
-
-  grid.ondragover = (e) => e.preventDefault();
-
-  function clearDragOverState() {
-    $$('.tag-card.drag-over').forEach(c => c.classList.remove('drag-over'));
-  }
-
-  // 从词库拖到画布：在 card ondragstart 中设置
-  $$('.tag-card[data-id]').forEach(card => {
-    const origStart = card.ondragstart;
-    card.ondragstart = (e) => {
       dragFromLibrary = +card.dataset.id;
-      origStart.call(card, e);
     };
   });
 }
 
-// ========== 画布鼠标拖拽（核心修复：用 mouse 事件替代 HTML5 drag）==========
+function initLibDragListeners() {
+  let rafId = null;
+
+  document.addEventListener('mousemove', (e) => {
+    if (!_libDrag.active || !_libDrag.el) return;
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      updateLibDragPosition(e.clientX, e.clientY);
+    });
+  }, { passive: true });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!_libDrag.active) return;
+    _libDrag.active = false;
+
+    clearLibDragVisuals();
+
+    // 检查是否释放在画布区域 → 加入画布
+    const canvasRect = $("#tag-canvas").getBoundingClientRect();
+    if (e.clientX >= canvasRect.left && e.clientX <= canvasRect.right &&
+        e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom) {
+      const t = tags.find(x => x.id === dragFromLibrary);
+      if (t) { canvasTags.push({ cn: t.cn, en: t.en }); saveCanvas(); renderCanvas(); }
+    } else if (_libDrag.insertIdx !== null && _libDrag.insertIdx !== _libDrag.idx) {
+      // 词库内排序
+      executeLibSort();
+    }
+
+    _libDrag.el = null; _libDrag.idx = null; _libDrag.insertIdx = null;
+    dragFromLibrary = null;
+  });
+}
+
+function updateLibDragPosition(mouseX, mouseY) {
+  const cards = $$('.tag-card[data-id]');
+  _libDrag.insertIdx = updateInsertBar(cards, mouseX, mouseY, 'library', _libDrag.idx);
+}
+
+function clearLibDragVisuals() {
+  $$('.tag-card[data-id]').forEach(c => {
+    c.classList.remove('is-dragging', 'push-left', 'push-right');
+  });
+  hideBar('library');
+}
+
+function executeLibSort() {
+  // 获取当前视图列表
+  const kw = $("#search-input").value.trim().toLowerCase();
+  let viewList;
+  if (currentCatId === FAV_CAT_ID) {
+    viewList = tags.filter(t => t.favorited && (!kw || t.cn.includes(kw)));
+  } else {
+    viewList = tags.filter(t => t.categoryId === currentCatId && (!kw || t.cn.includes(kw)));
+  }
+
+  const srcIdx = _libDrag.idx;
+  let dstIdx = _libDrag.insertIdx;
+  if (dstIdx > srcIdx) dstIdx--;
+
+  const [moved] = viewList.splice(srcIdx, 1);
+  viewList.splice(Math.max(0, Math.min(dstIdx, viewList.length)), 0, moved);
+
+  // 写回完整数组（保持非视图项顺序不变）
+  const viewIds = new Set(viewList.map(t => t.id));
+  tags = [...tags.filter(t => !viewIds.has(t.id)), ...viewList];
+  Storage.set("tags", tags);
+  renderLibrary();
+}
+
+// ========== 画布鼠标拖拽（统一绿色竖条光标）==========
 function bindCanvasMouseDrag() {
   const canvas = $("#tag-canvas");
-  const ghost = $("#drag-ghost");
-  const placeholder = $("#drag-placeholder");
 
-  let isDragging = false;
-  let dragIdx = null;
-  let dragEl = null;
-  let targetIdx = null; // 当前悬停目标位置
+  let _canvasDrag = { active: false, el: null, idx: null, insertIdx: null };
 
-  $$('.tag-chip').forEach(chip => {
+  $$('.tag-chip').forEach((chip, idx) => {
     chip.onmousedown = (e) => {
-      // 只响应左键，且不是点击删除按钮
       if (e.button !== 0 || e.target.classList.contains('remove')) return;
       e.preventDefault();
 
-      isDragging = true;
-      dragIdx = +chip.dataset.idx;
-      dragEl = chip;
-      targetIdx = dragIdx;
+      _canvasDrag.active = true;
+      _canvasDrag.el = chip;
+      _canvasDrag.idx = idx;
+      _canvasDrag.insertIdx = idx;
 
-      // 显示幽灵元素
-      ghost.textContent = chip.childNodes[0].textContent.trim();
-      ghost.classList.remove('hidden');
-      ghost.style.left = e.clientX + 'px';
-      ghost.style.top = e.clientY + 'px';
-
-      // 原始标签半透明
-      chip.classList.add('dragging');
-
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+      chip.classList.add('is-dragging');
     };
   });
 
-  function onMouseMove(e) {
-    if (!isDragging) return;
+  // document 级事件（只绑一次，通过闭包捕获 _canvasDrag）
+  if (!bindCanvasMouseDrag._bound) {
+    bindCanvasMouseDrag._bound = true;
 
-    // 幽灵跟随鼠标
-    ghost.style.left = e.clientX + 'px';
-    ghost.style.top = e.clientY + 'px';
+    let rafId = null;
 
-    // 计算当前鼠标位置对应的插入索引
-    const chips = $$('.tag-chip');
-    let newTargetIdx = null;
+    document.addEventListener('mousemove', (e) => {
+      if (!_canvasDrag.active || !_canvasDrag.el) return;
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const chips = $$('.tag-chip');
+        _canvasDrag.insertIdx = updateInsertBar(chips, e.clientX, e.clientY, 'canvas', _canvasDrag.idx);
+      });
+    }, { passive: true });
 
-    for (let i = 0; i < chips.length; i++) {
-      if (chips[i] === dragEl) continue; // 跳过自己
-      const rect = chips[i].getBoundingClientRect();
-      // 判断鼠标是否在这个标签范围内
-      if (e.clientX >= rect.left && e.clientX <= rect.right &&
-          e.clientY >= rect.top && e.clientY <= rect.bottom) {
-        newTargetIdx = i;
-        break;
+    document.addEventListener('mouseup', () => {
+      if (!_canvasDrag.active) return;
+      _canvasDrag.active = false;
+
+      // 清理视觉
+      $$('.tag-chip').forEach(c => c.classList.remove('is-dragging', 'push-left', 'push-right'));
+      hideBar('canvas');
+
+      // 执行排序
+      if (_canvasDrag.insertIdx !== null && _canvasDrag.insertIdx !== _canvasDrag.idx) {
+        let dstIdx = _canvasDrag.insertIdx;
+        if (dstIdx > _canvasDrag.idx) dstIdx--;
+
+        const [moved] = canvasTags.splice(_canvasDrag.idx, 1);
+        canvasTags.splice(Math.max(0, Math.min(dstIdx, canvasTags.length)), 0, moved);
+        saveCanvas();
+        renderCanvas();
       }
-    }
 
-    // 如果没有命中任何标签，判断是在末尾
-    if (newTargetIdx === null) {
-      const canvasRect = canvas.getBoundingClientRect();
-      if (e.clientY > canvasRect.top && e.clientY < canvasRect.bottom) {
-        newTargetIdx = chips.length;
-      }
-    }
-
-    // 更新目标高亮和占位符
-    if (newTargetIdx !== null && newTargetIdx !== targetIdx) {
-      targetIdx = newTargetIdx;
-      updateDragVisuals(chips, newTargetIdx);
-    } else if (newTargetIdx === null) {
-      targetIdx = null;
-      clearDragVisuals(chips);
-      placeholder.classList.add('hidden');
-    }
-  }
-
-  function updateDragVisuals(chips, idx) {
-    clearDragVisuals(chips);
-
-    if (idx >= chips.length) {
-      // 放在末尾：显示占位符
-      placeholder.classList.remove('hidden');
-      const lastChip = chips[chips.length - 1];
-      if (lastChip) {
-        const rect = lastChip.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        placeholder.style.left = (rect.right - canvasRect.left + 8) + 'px';
-        placeholder.style.top = (rect.top - canvasRect.top) + 'px';
-        placeholder.style.width = '40px';
-      }
-    } else {
-      // 放在某个标签前/后
-      const targetChip = chips[idx];
-      const targetRect = targetChip.getBoundingClientRect();
-      const canvasRect = canvas.getBoundingClientRect();
-
-      // 判断是左半边还是右半边
-      const midX = targetRect.left + targetRect.width / 2;
-      const insertBefore = e => false; // 将在 mousemove 中判断
-
-      // 显示占位符
-      placeholder.classList.remove('hidden');
-      placeholder.style.left = (targetRect.left - canvasRect.left) + 'px';
-      placeholder.style.top = (targetRect.top - canvasRect.top) + 'px';
-      placeholder.style.width = targetRect.width + 'px';
-      placeholder.style.height = targetRect.height + 'px';
-
-      // 高亮目标标签
-      targetChip.classList.add('drag-target');
-    }
-  }
-
-  function clearDragVisuals(chips) {
-    chips.forEach(c => {
-      c.classList.remove('drag-target', 'drag-target-before');
+      _canvasDrag.el = null; _canvasDrag.idx = null; _canvasDrag.insertIdx = null;
     });
-  }
-
-  function onMouseUp(e) {
-    if (!isDragging) return;
-    isDragging = false;
-
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
-
-    // 清理视觉
-    ghost.classList.add('hidden');
-    placeholder.classList.add('hidden');
-    if (dragEl) dragEl.classList.remove('dragging');
-    clearDragVisuals($$('.tag-chip'));
-
-    // 执行排序
-    if (targetIdx !== null && targetIdx !== dragIdx) {
-      // 调整索引（因为 dragEl 还在原位）
-      let finalIdx = targetIdx;
-      if (finalIdx > dragIdx) finalIdx--; // 往后放时补偿
-
-      const [moved] = canvasTags.splice(dragIdx, 1);
-      canvasTags.splice(finalIdx, 0, moved);
-      saveCanvas();
-    }
-
-    dragEl = null; dragIdx = null; targetIdx = null;
-
-    // 重新渲染
-    renderCanvas();
   }
 
   // 删除按钮
@@ -536,17 +521,6 @@ function bindCanvasMouseDrag() {
     e.stopPropagation();
     canvasTags.splice(+x.dataset.idx, 1); saveCanvas(); renderCanvas();
   });
-
-  // 画布接收来自词库的拖拽（HTML5 drag）
-  canvas.ondragover = (e) => e.preventDefault();
-  canvas.ondrop = (e) => {
-    e.preventDefault();
-    if (dragFromLibrary !== null) {
-      const t = tags.find(x => x.id === dragFromLibrary);
-      if (t) { canvasTags.push({ cn: t.cn, en: t.en }); saveCanvas(); renderCanvas(); }
-      dragFromLibrary = null;
-    }
-  };
 }
 
 // ========== Canvas 区域大小调整 ==========

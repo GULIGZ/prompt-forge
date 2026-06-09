@@ -61,33 +61,21 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tag-chip .remove { color: var(--highlight); cursor: pointer; opacity: 0.5; font-size: 12px; }
 .tag-chip:hover .remove { opacity: 1; }
 
-/* 拖拽中的标签样式 */
-.tag-chip.dragging {
-  opacity: 0.35; transform: scale(0.95);
+/* 拖拽中的标签样式（画布） */
+.tag-chip.is-dragging {
+  opacity: 0.35 !important; transform: scale(1.05) !important;
+  z-index: 100 !important; box-shadow: 0 6px 20px rgba(233,69,96,0.35) !important;
+  cursor: grabbing !important;
 }
-/* 吸附目标高亮 */
-.tag-chip.drag-target {
-  transform: translateX(12px);
-  box-shadow: 0 0 0 2px var(--blue), 0 0 12px rgba(59,130,246,0.4);
+.tag-chip.push-left {
+  transform: translateX(-12px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.7;
 }
-.tag-chip.drag-target-before {
-  transform: translateX(-12px);
-  box-shadow: 0 0 0 2px var(--blue), 0 0 12px rgba(59,130,246,0.4);
-}
-
-/* 拖拽幽灵 */
-.drag-ghost {
-  position: fixed; pointer-events: none; z-index: 9999;
-  padding: 5px 12px; background: var(--highlight); border-radius: 20px;
-  font-size: 14px; font-weight: bold; color: #fff; white-space: nowrap;
-  box-shadow: 0 4px 16px rgba(233,69,96,0.5); transform: translate(-50%, -50%);
-}
-/* 拖拽占位符（插入位置指示）*/
-.drag-placeholder {
-  position: absolute; height: 32px; min-width: 40px;
-  border: 2px dashed var(--blue); border-radius: 20px;
-  background: rgba(59,130,246,0.1); pointer-events: none;
-  z-index: 5;
+.tag-chip.push-right {
+  transform: translateX(12px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.7;
 }
 
 /* Canvas Footer - 浮动在画布内右下角 */
@@ -128,9 +116,9 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 }
 .category-tabs-bar::-webkit-scrollbar { display: none; }
 .category-tabs {
-  display: flex; gap: 6px; flex: 1; overflow-x: auto;
+  display: flex; gap: 6px; flex: 1; overflow: visible;
+  position: relative; /* 让内部 absolute 的光标不被裁剪 */
 }
-.category-tabs::-webkit-scrollbar { display: none; }
 
 /* 编辑按钮（固定在右侧） */
 .btn-edit-cats {
@@ -167,7 +155,49 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .cat-edit-mode .tab:not(.fixed) .cat-actions {
   display: flex;
 }
-.tab.drag-over { border-color: var(--blue); box-shadow: 0 0 8px rgba(59,130,246,0.4); z-index: 2; position: relative; }
+/* ========== 通用插入光标（三区共用，green bar） ========== */
+.insert-bar {
+  position: fixed;
+  width: 5px;
+  height: 36px;
+  background: #22c55e;
+  border-radius: 3px;
+  z-index: 99999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease, left 0.08s ease, top 0.08s ease;
+  box-shadow:
+    0 0 12px rgba(34,197,94,1),
+    0 0 28px rgba(34,197,94,0.6),
+    0 0 56px rgba(34,197,94,0.25);
+}
+.insert-bar.visible {
+  opacity: 1;
+  animation: insertBarPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes insertBarPulse {
+  0%   { transform: scaleY(1);   box-shadow: 0 0 12px rgba(34,197,94,1), 0 0 28px rgba(34,197,94,0.6), 0 0 56px rgba(34,197,94,0.25); }
+  100% { transform: scaleY(1.5); box-shadow: 0 0 16px rgba(74,222,128,1), 0 0 36px rgba(34,197,94,0.9), 0 0 64px rgba(34,197,94,0.35); }
+}
+
+/* 分类/画布/词库 元素让位 */
+.tab.push-left {
+  transform: translateX(-12px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.7;
+}
+.tab.push-right {
+  transform: translateX(12px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.7;
+}
+.tab.is-dragging {
+  opacity: 0.3 !important; z-index: 100 !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 6px 20px rgba(233,69,96,0.35) !important;
+  cursor: grabbing !important;
+}
 .cat-edit-mode .tab:not(.fixed) .cat-actions button {
   background: var(--accent); border: none; color: var(--text);
   width: 20px; height: 20px; border-radius: 4px; cursor: pointer;
@@ -228,8 +258,17 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tag-card .actions .btn-fav.active { background: rgba(251,191,36,0.2); }
 .tag-card .actions .btn-delete { color: var(--highlight); }
 .tag-card.favorited { border-color: rgba(251,191,36,0.4); }
-.tag-card.is-dragging { opacity: 0.35; transform: scale(0.9); }
-.tag-card.drag-over { border-color: var(--green); transform: scale(1.05); box-shadow: 0 0 8px rgba(34,197,94,0.3); }
+.tag-card.is-dragging { opacity: 0.35 !important; transform: scale(1.05) !important; z-index: 100 !important; box-shadow: 0 6px 20px rgba(233,69,96,0.35) !important; cursor: grabbing !important; }
+.tag-card.push-left {
+  transform: translateX(-12px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.7;
+}
+.tag-card.push-right {
+  transform: translateX(12px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0.7;
+}
 
 /* ========== 炸开模式 ========== */
 .parse-page {
