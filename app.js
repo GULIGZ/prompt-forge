@@ -119,6 +119,13 @@ function hideBar(name) {
   if (bar) { bar.classList.remove('visible'); bar.style.display = 'none'; }
 }
 
+// 拖拽释放后触发出场动效
+function triggerEnterAnimation(containerEl) {
+  if (!containerEl) return;
+  containerEl.classList.add('drag-complete');
+  setTimeout(() => containerEl.classList.remove('drag-complete'), 350);
+}
+
 // ========== 初始化 ==========
 function init() {
   if (!categories.find(c => c.id === FAV_CAT_ID)) {
@@ -272,6 +279,7 @@ function initCatDragListeners() {
         categories.splice(Math.max(0, Math.min(dstIdx, categories.length)), 0, moved);
         Storage.set("categories", categories);
         renderTabs();
+        triggerEnterAnimation(document.getElementById('category-tabs'));
       }
     }
 
@@ -415,7 +423,7 @@ function initLibDragListeners() {
     if (e.clientX >= canvasRect.left && e.clientX <= canvasRect.right &&
         e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom) {
       const t = tags.find(x => x.id === dragFromLibrary);
-      if (t) { canvasTags.push({ cn: t.cn, en: t.en }); saveCanvas(); renderCanvas(); }
+      if (t) { canvasTags.push({ cn: t.cn, en: t.en }); saveCanvas(); renderCanvas(); triggerEnterAnimation(document.getElementById('tag-canvas')); }
     } else if (_libDrag.insertIdx !== null && _libDrag.insertIdx !== _libDrag.idx) {
       // 词库内排序
       executeLibSort();
@@ -460,6 +468,7 @@ function executeLibSort() {
   tags = [...tags.filter(t => !viewIds.has(t.id)), ...viewList];
   Storage.set("tags", tags);
   renderLibrary();
+  triggerEnterAnimation(document.getElementById('tag-grid'));
 }
 
 // ========== 画布鼠标拖拽（统一绿色竖条光标）==========
@@ -513,6 +522,7 @@ function bindCanvasMouseDrag() {
         canvasTags.splice(Math.max(0, Math.min(dstIdx, canvasTags.length)), 0, moved);
         saveCanvas();
         renderCanvas();
+        triggerEnterAnimation(document.getElementById('tag-canvas'));
       }
 
       _canvasDrag.el = null; _canvasDrag.idx = null; _canvasDrag.insertIdx = null;

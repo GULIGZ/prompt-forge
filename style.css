@@ -2,6 +2,23 @@
   --bg: #1a1a2e; --bg2: #16213e; --accent: #0f3460;
   --highlight: #e94560; --blue: #3b82f6; --green: #22c55e;
   --yellow: #fbbf24; --text: #e2e8f0; --text2: #94a3b8; --radius: 8px;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ========== 全局动效 ========== */
+@keyframes itemEnter {
+  0%   { opacity: 0; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes floatGlow {
+  0%   { box-shadow: 0 8px 24px rgba(233,69,96,0.3), 0 0 0 2px rgba(233,69,96,0.6); }
+  100% { box-shadow: 0 12px 32px rgba(233,69,96,0.5), 0 0 0 3px rgba(233,69,96,0.9); }
+}
+@keyframes pushHint {
+  0%   { opacity: 0.6; }
+  50%  { opacity: 0.8; }
+  100% { opacity: 0.6; }
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
@@ -55,27 +72,44 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   padding: 5px 12px; background: var(--accent); border-radius: 20px;
   cursor: grab; font-size: 14px; font-weight: bold;
   user-select: none; position: relative; white-space: nowrap;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.2s var(--smooth), box-shadow 0.2s var(--smooth), opacity 0.2s var(--smooth), border-color 0.2s var(--smooth);
+  border: 2px solid transparent;
 }
-.tag-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-.tag-chip .remove { color: var(--highlight); cursor: pointer; opacity: 0.5; font-size: 12px; }
+.tag-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border-color: rgba(59,130,246,0.3);
+}
+.tag-chip .remove { color: var(--highlight); cursor: pointer; opacity: 0.5; font-size: 12px; transition: opacity 0.15s; }
 .tag-chip:hover .remove { opacity: 1; }
 
-/* 拖拽中的标签样式（画布） */
+/* 拖拽中的标签样式（画布）— 磁浮抬起效果 */
 .tag-chip.is-dragging {
-  opacity: 0.35 !important; transform: scale(1.05) !important;
-  z-index: 100 !important; box-shadow: 0 6px 20px rgba(233,69,96,0.35) !important;
+  opacity: 0.4 !important;
+  transform: scale(1.15) rotate(2deg) !important;
+  z-index: 100 !important;
   cursor: grabbing !important;
+  animation: floatGlow 0.6s ease-in-out infinite alternate !important;
+  border-color: var(--highlight) !important;
 }
 .tag-chip.push-left {
-  transform: translateX(-12px) scale(0.97);
-  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.7;
+  transform: translateX(-14px) scale(0.95);
+  transition: transform 0.25s var(--spring);
+  opacity: 0.6;
+  animation: pushHint 0.8s ease-in-out infinite;
 }
 .tag-chip.push-right {
-  transform: translateX(12px) scale(0.97);
-  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.7;
+  transform: translateX(14px) scale(0.95);
+  transition: transform 0.25s var(--spring);
+  opacity: 0.6;
+  animation: pushHint 0.8s ease-in-out infinite;
+}
+
+/* 拖拽释放后的入场动效 */
+.drag-complete .tag-chip,
+.drag-complete .tab[data-id],
+.drag-complete .tag-card {
+  animation: itemEnter 0.3s var(--spring) both;
 }
 
 /* Canvas Footer - 浮动在画布内右下角 */
@@ -142,7 +176,8 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   display: flex; align-items: center; gap: 4px;
   padding: 7px 14px; background: var(--bg2); border-radius: var(--radius);
   cursor: pointer; font-size: 13px; white-space: nowrap; border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: transform 0.2s var(--smooth), box-shadow 0.2s var(--smooth),
+              opacity 0.2s var(--smooth), background 0.15s, border-color 0.15s;
 }
 .tab.fixed { background: rgba(251,191,36,0.15); border-color: var(--yellow); }
 .tab.active { background: var(--accent); border-color: var(--blue); color: var(--text); }
@@ -174,7 +209,7 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   z-index: 99999;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.1s ease, left 0.08s ease, top 0.08s ease;
+  transition: opacity 0.12s ease, left 0.1s var(--smooth), top 0.1s var(--smooth);
   box-shadow:
     0 0 12px rgba(34,197,94,1),
     0 0 28px rgba(34,197,94,0.6),
@@ -182,30 +217,34 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 }
 .insert-bar.visible {
   opacity: 1;
-  animation: insertBarPulse 0.5s ease-in-out infinite alternate;
+  animation: insertBarPulse 0.6s ease-in-out infinite alternate;
 }
 
 @keyframes insertBarPulse {
-  0%   { transform: scaleY(1);   box-shadow: 0 0 12px rgba(34,197,94,1), 0 0 28px rgba(34,197,94,0.6), 0 0 56px rgba(34,197,94,0.25); }
-  100% { transform: scaleY(1.5); box-shadow: 0 0 16px rgba(74,222,128,1), 0 0 36px rgba(34,197,94,0.9), 0 0 64px rgba(34,197,94,0.35); }
+  0%   { transform: scaleY(1) scaleX(1);     box-shadow: 0 0 12px rgba(34,197,94,1), 0 0 28px rgba(34,197,94,0.6), 0 0 56px rgba(34,197,94,0.25); }
+  50%  { box-shadow: 0 0 20px rgba(74,222,128,1), 0 0 40px rgba(34,197,94,0.8), 0 0 70px rgba(34,197,94,0.3); }
+  100% { transform: scaleY(1.6) scaleX(1.2); box-shadow: 0 0 16px rgba(74,222,128,1), 0 0 36px rgba(34,197,94,0.9), 0 0 64px rgba(34,197,94,0.35); }
 }
 
 /* 分类/画布/词库 元素让位 */
 .tab.push-left {
-  transform: translateX(-12px) scale(0.97);
-  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.7;
+  transform: translateX(-14px) scale(0.95);
+  transition: transform 0.25s var(--spring);
+  opacity: 0.6;
+  animation: pushHint 0.8s ease-in-out infinite;
 }
 .tab.push-right {
-  transform: translateX(12px) scale(0.97);
-  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.7;
+  transform: translateX(14px) scale(0.95);
+  transition: transform 0.25s var(--spring);
+  opacity: 0.6;
+  animation: pushHint 0.8s ease-in-out infinite;
 }
 .tab.is-dragging {
   opacity: 0.3 !important; z-index: 100 !important;
-  transform: scale(1.05) !important;
-  box-shadow: 0 6px 20px rgba(233,69,96,0.35) !important;
+  transform: scale(1.15) rotate(2deg) !important;
   cursor: grabbing !important;
+  animation: floatGlow 0.6s ease-in-out infinite alternate !important;
+  border-color: var(--highlight) !important;
 }
 .cat-edit-mode .tab:not(.fixed) .cat-actions button {
   background: var(--accent); border: none; color: var(--text);
@@ -235,11 +274,12 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   background: var(--bg2); border-radius: var(--radius);
   padding: 6px 14px; text-align: center; cursor: grab;
   position: relative; border: 1px solid transparent;
-  transition: border-color 0.15s, transform 0.15s, opacity 0.15s;
+  transition: transform 0.2s var(--smooth), box-shadow 0.2s var(--smooth),
+              opacity 0.2s var(--smooth), border-color 0.15s;
   display: inline-flex; align-items: center; justify-content: center;
   white-space: nowrap;
 }
-.tag-card:hover { border-color: var(--blue); transform: translateY(-1px); }
+.tag-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 .tag-card .cn { font-size: 14px; font-weight: bold; line-height: 1.4; }
 
 /* 收藏黄色小点 */
@@ -264,16 +304,23 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tag-card .actions .btn-fav.active { background: rgba(251,191,36,0.2); }
 .tag-card .actions .btn-delete { color: var(--highlight); }
 .tag-card.favorited { border-color: rgba(251,191,36,0.4); }
-.tag-card.is-dragging { opacity: 0.35 !important; transform: scale(1.05) !important; z-index: 100 !important; box-shadow: 0 6px 20px rgba(233,69,96,0.35) !important; cursor: grabbing !important; }
+.tag-card.is-dragging {
+  opacity: 0.35 !important; transform: scale(1.15) rotate(2deg) !important;
+  z-index: 100 !important; cursor: grabbing !important;
+  animation: floatGlow 0.6s ease-in-out infinite alternate !important;
+  border-color: var(--highlight) !important;
+}
 .tag-card.push-left {
-  transform: translateX(-12px) scale(0.97);
-  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.7;
+  transform: translateX(-14px) scale(0.95);
+  transition: transform 0.25s var(--spring);
+  opacity: 0.6;
+  animation: pushHint 0.8s ease-in-out infinite;
 }
 .tag-card.push-right {
-  transform: translateX(12px) scale(0.97);
-  transition: transform 0.18s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0.7;
+  transform: translateX(14px) scale(0.95);
+  transition: transform 0.25s var(--spring);
+  opacity: 0.6;
+  animation: pushHint 0.8s ease-in-out infinite;
 }
 
 /* ========== 炸开模式 ========== */
