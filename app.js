@@ -45,6 +45,9 @@ let _catDrag = { active: false, el: null, idx: null, insertIdx: null };
 // 词库拖拽状态
 let _libDrag = { active: false, el: null, idx: null, insertIdx: null };
 
+// 画布拖拽状态
+let _canvasDrag = { active: false, el: null, idx: null, insertIdx: null };
+
 // ========== 通用竖条光标系统（三区共用）==========
 const _bars = {}; // { canvas: DOM, library: DOM, category: DOM }
 
@@ -460,8 +463,6 @@ function executeLibSort() {
 // ========== 画布鼠标拖拽（统一绿色竖条光标）==========
 function bindCanvasMouseDrag() {
   const canvas = $("#tag-canvas");
-
-  let _canvasDrag = { active: false, el: null, idx: null, insertIdx: null };
 
   $$('.tag-chip').forEach((chip, idx) => {
     chip.onmousedown = (e) => {
