@@ -61,30 +61,75 @@ function getBar(name) {
   return _bars[name];
 }
 
-// 通用：计算间隙插入位置 + 更新光标和让位效果
+// 通用：2D 间隙插入计算 + 更新光标和让位效果
 // items: DOM 元素数组, mouseX/Y: 鼠标坐标, barName: 光标名称, dragIdx: 被拖元素索引
-// 返回 insertIdx
+// 支持 flex-wrap 多行：先按 Y 找最近行，再按 X 定插入位
 function updateInsertBar(items, mouseX, mouseY, barName, dragIdx) {
   const bar = getBar(barName);
-
-  let insertIdx = 0;
-  for (let i = 0; i < items.length; i++) {
-    const r = items[i].getBoundingClientRect();
-    if (mouseX < r.left + r.width / 2) { insertIdx = i; break; }
-    insertIdx = i + 1;
-  }
+  const others = items.filter((_, i) => i !== dragIdx);
 
   // 清除旧状态
   items.forEach(t => t.classList.remove('push-left', 'push-right'));
   bar.classList.remove('visible');
 
+  if (!others.length) { bar.style.display = 'none'; return 0; }
+
+  // 构建行分组（排除被拖元素，避免 transform 干扰）
+  const rects = others.map(el => el.getBoundingClientRect());
+
+  // 行分组：top 偏移小于 6px 视为同一行
+  const rows = [];
+  for (let i = 0; i < others.length; i++) {
+    const top = rects[i].top;
+    if (i === 0 || Math.abs(top - rects[i - 1].top) > 6) rows.push([i]);
+    else rows[rows.length - 1].push(i);
+  }
+
+  // 找鼠标最近行
+  let targetRow = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const first = rows[i][0];
+    const last = rows[i][rows.length - 1];
+    const rowTop = rects[first].top;
+    const rowBot = rects[last].bottom;
+
+    if (mouseY >= rowTop && mouseY <= rowBot) { targetRow = i; break; }
+    if (i === 0 && mouseY < rowTop) { targetRow = 0; break; }
+    if (i === rows.length - 1 && mouseY > rowBot) { targetRow = rows.length; break; }
+  }
+
+  let insertIdx;
+  if (targetRow >= rows.length) {
+    // 最后一行之后
+    insertIdx = others.length;
+  } else {
+    // 在目标行内按 X 定位
+    const row = rows[targetRow];
+    insertIdx = row[0];
+    for (const idx of row) {
+      if (mouseX < rects[idx].left + rects[idx].width / 2) { insertIdx = idx; break; }
+      insertIdx = idx + 1;
+    }
+  }
+
+  // 映射回原始 items 中的索引
+  const flatOthers = others; // others 已排除 dragIdx
+  let finalIdx;
+  if (insertIdx >= flatOthers.length) {
+    finalIdx = items.length;
+  } else {
+    const targetEl = flatOthers[insertIdx];
+    finalIdx = items.indexOf(targetEl);
+  }
+
   // 没移动则隐藏
-  if (insertIdx === dragIdx) { bar.style.display = 'none'; return insertIdx; }
+  if (finalIdx === dragIdx) { bar.style.display = 'none'; return finalIdx; }
   bar.style.display = '';
   bar.classList.add('visible');
   bar.style.position = 'fixed';
 
-  if (insertIdx === 0) {
+  // 定位竖条
+  if (finalIdx === 0) {
     const first = items[0];
     if (first) {
       const r = first.getBoundingClientRect();
@@ -92,7 +137,7 @@ function updateInsertBar(items, mouseX, mouseY, barName, dragIdx) {
       bar.style.top = (r.top + r.height / 2 - 18) + 'px';
     }
     items[0]?.classList.add('push-right');
-  } else if (insertIdx >= items.length) {
+  } else if (finalIdx >= items.length) {
     const last = items[items.length - 1];
     if (last) {
       const r = last.getBoundingClientRect();
@@ -101,8 +146,8 @@ function updateInsertBar(items, mouseX, mouseY, barName, dragIdx) {
     }
     items[items.length - 1]?.classList.add('push-left');
   } else {
-    const leftEl = items[insertIdx - 1];
-    const rightEl = items[insertIdx];
+    const leftEl = items[finalIdx - 1];
+    const rightEl = items[finalIdx];
     if (leftEl && rightEl) {
       const lr = leftEl.getBoundingClientRect();
       bar.style.left = ((lr.right + rightEl.getBoundingClientRect().left) / 2 - 2.5) + 'px';
@@ -111,7 +156,7 @@ function updateInsertBar(items, mouseX, mouseY, barName, dragIdx) {
       rightEl.classList.add('push-right');
     }
   }
-  return insertIdx;
+  return finalIdx;
 }
 
 function hideBar(name) {
@@ -291,19 +336,13 @@ function updateCatDragPosition(mouseX, mouseY) {
   const tabsEl = document.getElementById('category-tabs');
   const tabs = [...tabsEl.querySelectorAll('.tab[data-id]')];
 
-  let insertIdx = 0;
-  for (let i = 0; i < tabs.length; i++) {
-    const r = tabs[i].getBoundingClientRect();
-    if (mouseX < r.left + r.width / 2) { insertIdx = i; break; }
-    insertIdx = i + 1;
-  }
+  let insertIdx = updateInsertBar(tabs, mouseX, mouseY, 'category', _catDrag.idx);
 
   // 固定分类不能被跨越
   const firstFixedIdx = categories.findIndex(c => c.fixed);
   if (firstFixedIdx >= 0 && insertIdx <= firstFixedIdx) insertIdx = firstFixedIdx + 1;
 
   _catDrag.insertIdx = insertIdx;
-  updateInsertBar(tabs, mouseX, mouseY, 'category', _catDrag.idx);
 
   // 被拖元素跟随鼠标
   if (_catDrag.el) {
