@@ -62,13 +62,11 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tag-chip .remove { color: var(--highlight); cursor: pointer; opacity: 0.5; font-size: 12px; }
 .tag-chip:hover .remove { opacity: 1; }
 
-/* 拖拽中的标签样式 — 轻微放大 */
+/* 拖拽中的标签样式 — 轻微放大（transform 由 JS 内联设置） */
 .tag-chip.is-dragging {
   opacity: 0.4 !important;
-  transform: scale(1.05) !important;
   z-index: 100 !important;
   cursor: grabbing !important;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3) !important;
 }
 .tag-chip.push-left {
   transform: translateX(-12px);
@@ -198,9 +196,7 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 }
 .tab.is-dragging {
   opacity: 0.35 !important; z-index: 100 !important;
-  transform: scale(1.05) !important;
   cursor: grabbing !important;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3) !important;
 }
 .cat-edit-mode .tab:not(.fixed) .cat-actions button {
   background: var(--accent); border: none; color: var(--text);
@@ -261,9 +257,8 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tag-card .actions .btn-delete { color: var(--highlight); }
 .tag-card.favorited { border-color: rgba(251,191,36,0.4); }
 .tag-card.is-dragging {
-  opacity: 0.35 !important; transform: scale(1.05) !important;
-  z-index: 100 !important; cursor: grabbing !important;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.3) !important;
+  opacity: 0.35 !important; z-index: 100 !important;
+  cursor: grabbing !important;
 }
 .tag-card.push-left {
   transform: translateX(-12px);

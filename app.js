@@ -40,13 +40,13 @@ let dragFromLibrary = null;
 let catEditMode = false;
 
 // 分类拖拽状态
-let _catDrag = { active: false, el: null, idx: null, insertIdx: null };
+let _catDrag = { active: false, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
 
 // 词库拖拽状态
-let _libDrag = { active: false, el: null, idx: null, insertIdx: null };
+let _libDrag = { active: false, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
 
 // 画布拖拽状态
-let _canvasDrag = { active: false, el: null, idx: null, insertIdx: null };
+let _canvasDrag = { active: false, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
 
 // ========== 通用竖条光标系统（三区共用）==========
 const _bars = {}; // { canvas: DOM, library: DOM, category: DOM }
@@ -227,10 +227,15 @@ function bindTabMouseDrag() {
       if (e.target.closest('.cat-actions')) return;
       e.preventDefault();
 
+      const r = tab.getBoundingClientRect();
       _catDrag.active = true;
       _catDrag.el = tab;
       _catDrag.idx = idx;
-      _catDrag.insertIdx = idx; // 默认在原位置
+      _catDrag.insertIdx = idx;
+      _catDrag.startX = e.clientX;
+      _catDrag.startY = e.clientY;
+      _catDrag.origLeft = r.left;
+      _catDrag.origTop = r.top;
 
       tab.classList.add('is-dragging');
     };
@@ -299,6 +304,14 @@ function updateCatDragPosition(mouseX, mouseY) {
 
   _catDrag.insertIdx = insertIdx;
   updateInsertBar(tabs, mouseX, mouseY, 'category', _catDrag.idx);
+
+  // 被拖元素跟随鼠标
+  if (_catDrag.el) {
+    const dx = mouseX - _catDrag.startX;
+    const dy = mouseY - _catDrag.startY;
+    _catDrag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.05)`;
+    _catDrag.el.style.zIndex = '100';
+  }
 }
 
 function clearCatDragVisuals() {
@@ -381,10 +394,15 @@ function bindLibraryDrag() {
       if (e.button !== 0 || e.target.closest('.actions')) return;
       e.preventDefault();
 
+      const r = card.getBoundingClientRect();
       _libDrag.active = true;
       _libDrag.el = card;
       _libDrag.idx = idx;
       _libDrag.insertIdx = idx;
+      _libDrag.startX = e.clientX;
+      _libDrag.startY = e.clientY;
+      _libDrag.origLeft = r.left;
+      _libDrag.origTop = r.top;
 
       card.classList.add('is-dragging');
       dragFromLibrary = +card.dataset.id;
@@ -415,6 +433,7 @@ function initLibDragListeners() {
     if (e.clientX >= canvasRect.left && e.clientX <= canvasRect.right &&
         e.clientY >= canvasRect.top && e.clientY <= canvasRect.bottom) {
       const t = tags.find(x => x.id === dragFromLibrary);
+      if (t) { canvasTags.push({ cn: t.cn, en: t.en }); saveCanvas(); renderCanvas(); }
     } else if (_libDrag.insertIdx !== null && _libDrag.insertIdx !== _libDrag.idx) {
       // 词库内排序
       executeLibSort();
@@ -428,11 +447,21 @@ function initLibDragListeners() {
 function updateLibDragPosition(mouseX, mouseY) {
   const cards = $$('.tag-card[data-id]');
   _libDrag.insertIdx = updateInsertBar(cards, mouseX, mouseY, 'library', _libDrag.idx);
+
+  // 被拖元素跟随鼠标
+  if (_libDrag.el) {
+    const dx = mouseX - _libDrag.startX;
+    const dy = mouseY - _libDrag.startY;
+    _libDrag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.05)`;
+    _libDrag.el.style.zIndex = '100';
+  }
 }
 
 function clearLibDragVisuals() {
   $$('.tag-card[data-id]').forEach(c => {
     c.classList.remove('is-dragging', 'push-left', 'push-right');
+    c.style.transform = '';
+    c.style.zIndex = '';
   });
   hideBar('library');
 }
@@ -470,10 +499,15 @@ function bindCanvasMouseDrag() {
       if (e.button !== 0 || e.target.classList.contains('remove')) return;
       e.preventDefault();
 
+      const r = chip.getBoundingClientRect();
       _canvasDrag.active = true;
       _canvasDrag.el = chip;
       _canvasDrag.idx = idx;
       _canvasDrag.insertIdx = idx;
+      _canvasDrag.startX = e.clientX;
+      _canvasDrag.startY = e.clientY;
+      _canvasDrag.origLeft = r.left;
+      _canvasDrag.origTop = r.top;
 
       chip.classList.add('is-dragging');
     };
@@ -492,6 +526,13 @@ function bindCanvasMouseDrag() {
         rafId = null;
         const chips = $$('.tag-chip');
         _canvasDrag.insertIdx = updateInsertBar(chips, e.clientX, e.clientY, 'canvas', _canvasDrag.idx);
+        // 被拖元素跟随鼠标
+        if (_canvasDrag.el) {
+          const dx = e.clientX - _canvasDrag.startX;
+          const dy = e.clientY - _canvasDrag.startY;
+          _canvasDrag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.05)`;
+          _canvasDrag.el.style.zIndex = '100';
+        }
       });
     }, { passive: true });
 
@@ -500,7 +541,11 @@ function bindCanvasMouseDrag() {
       _canvasDrag.active = false;
 
       // 清理视觉
-      $$('.tag-chip').forEach(c => c.classList.remove('is-dragging', 'push-left', 'push-right'));
+      $$('.tag-chip').forEach(c => {
+        c.classList.remove('is-dragging', 'push-left', 'push-right');
+        c.style.transform = '';
+        c.style.zIndex = '';
+      });
       hideBar('canvas');
 
       // 执行排序
