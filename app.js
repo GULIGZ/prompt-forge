@@ -154,9 +154,11 @@ function renderTabs() {
     return `<div class="${cls.join(' ')}" data-id="${c.id}">
       <span class="tab-icon">${c.icon}</span>${c.name}${actions}
     </div>`;
-  }).join("") + (catEditMode
-    ? `<div class="tab tab-add" id="btn-add-cat"><span class="tab-add">+ 新增</span></div>`
-    : "");
+  }).join("");
+
+  // 新增按钮始终在右侧按钮区，不受滚动影响
+  const addBtn = document.getElementById('btn-add-cat');
+  addBtn.classList.toggle('hidden', !catEditMode);
 
   bindTabMouseDrag(); // 改用鼠标拖拽
   bindCatEditActions();
@@ -675,9 +677,10 @@ function bindEvents() {
   $("#btn-paint").onclick = () => switchMode("paint");
   $("#btn-parse-mode").onclick = () => switchMode("parse");
 
+  // 新增按钮（在右侧固定区，不受滚动影响）
+  document.getElementById('btn-add-cat').onclick = openAddCategory;
+
   $("#category-tabs").onclick = (e) => {
-    // 新增按钮（仅编辑模式可见，始终可点）
-    if (e.target.closest("#btn-add-cat")) { openAddCategory(); return; }
     // 编辑模式下不响应分类切换
     if (catEditMode) return;
     const tab = e.target.closest(".tab[data-id]");

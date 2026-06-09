@@ -110,23 +110,28 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 /* ========== Category Tabs Bar ========== */
 .category-tabs-bar {
   display: flex; align-items: center; gap: 6px;
-  padding: 8px 12px; overflow-x: auto;
-  background: var(--bg); border-bottom: 1px solid var(--accent);
-  scrollbar-width: none; flex-shrink: 0;
+  padding: 8px 12px; background: var(--bg);
+  border-bottom: 1px solid var(--accent); flex-shrink: 0;
+  min-width: 0;
 }
-.category-tabs-bar::-webkit-scrollbar { display: none; }
 .category-tabs {
-  display: flex; gap: 6px; flex: 1; overflow: visible;
-  position: relative; /* 让内部 absolute 的光标不被裁剪 */
+  display: flex; gap: 6px; flex: 1; overflow-x: auto;
+  position: relative; scrollbar-width: none; min-width: 0;
+}
+.category-tabs::-webkit-scrollbar { display: none; }
+
+/* 右侧按钮组（始终固定在视图内） */
+.cat-bar-actions {
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+  margin-left: auto;
 }
 
-/* 编辑按钮（固定在右侧） */
 .btn-edit-cats {
-  flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius);
+  width: 30px; height: 30px; border-radius: var(--radius);
   background: var(--bg2); border: 1px solid var(--accent);
   color: var(--text2); cursor: pointer; font-size: 14px;
   display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s; flex-shrink: 0;
 }
 .btn-edit-cats:hover { background: var(--accent); color: var(--text); }
 .btn-edit-cats.active {
@@ -143,7 +148,12 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tab.fixed { background: rgba(251,191,36,0.15); border-color: var(--yellow); }
 .tab.active { background: var(--accent); border-color: var(--blue); color: var(--text); }
 .tab .tab-icon { font-size: 15px; }
-.tab-add { font-size: 16px; margin-left: 4px; cursor: pointer; }
+/* 新增分类按钮（在右侧固定按钮组内） */
+.tab-add {
+  padding: 6px 14px; background: var(--green); color: #fff;
+  border-radius: var(--radius); font-size: 13px; cursor: pointer;
+  white-space: nowrap; flex-shrink: 0;
+}
 
 /* ========== 分类编辑模式 ========== */
 .cat-edit-mode .tab { cursor: grab; }
@@ -205,9 +215,6 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 }
 .cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-del:hover { background: var(--highlight); color: #fff; }
 .cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-edit:hover { background: var(--blue); }
-
-/* 编辑模式下的添加按钮 */
-.cat-edit-mode .tab-add { background: var(--green); color: #fff; border-radius: var(--radius); padding: 7px 10px; }
 
 /* ========== Library ========== */
 .library-area { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; min-height: 0; }
