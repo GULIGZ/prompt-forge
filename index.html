@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PromptForge 提示词工坊</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <div class="logo">PromptForge</div>
+      <nav class="mode-switch">
+        <button id="btn-paint" class="active">🎨 提示词</button>
+        <button id="btn-parse-mode">🧩 炸开</button>
+      </nav>
+      <button id="btn-settings" class="icon-btn">⚙️</button>
+    </header>
+
+    <!-- 提示词模式 -->
+    <main id="paint-mode">
+      <section class="canvas-area" id="canvas-area">
+        <input type="text" id="input-field" placeholder="输入提示词，按两下空格键变成标签...">
+        <div class="canvas-body">
+          <div id="tag-canvas" class="tag-canvas"></div>
+          <!-- 工具栏：浮动在画布内右下角 -->
+          <div class="canvas-footer">
+            <button id="btn-translate" title="切换中英文">中/英</button>
+            <button id="btn-copy">📋 复制</button>
+            <button id="btn-clear">🗑️ 清空</button>
+          </div>
+          <!-- 拖拽占位指示器 -->
+          <div id="drag-placeholder" class="drag-placeholder hidden"></div>
+          <!-- 拖拽中的幽灵元素 -->
+          <div id="drag-ghost" class="drag-ghost hidden"></div>
+        </div>
+        <!-- 调整大小手柄 -->
+        <div class="resize-handle" id="resize-handle"></div>
+      </section>
+
+      <nav class="category-tabs-bar">
+        <div id="category-tabs" class="category-tabs"></div>
+        <button id="btn-edit-cats" class="btn-edit-cats" title="编辑分类">✏️</button>
+      </nav>
+
+      <section class="library-area">
+        <div class="library-toolbar">
+          <input type="text" id="search-input" placeholder="🔍 搜索当前分类...">
+          <button id="btn-add-tag">+ 添加</button>
+        </div>
+        <div id="tag-grid" class="tag-grid"></div>
+      </section>
+    </main>
+
+    <!-- 炸开模式 -->
+    <main id="parse-mode" class="hidden">
+      <section class="parse-page">
+        <textarea id="parse-input" placeholder="粘贴整段提示词，自动拆解..."></textarea>
+        <div class="parse-options">
+          <label><input type="checkbox" id="opt-comma" checked> 逗号切分</label>
+          <label><input type="checkbox" id="opt-space"> 空格切分</label>
+        </div>
+        <div id="parse-result" class="parse-result"></div>
+        <div class="parse-actions">
+          <button id="btn-parse-all">全部加入画布</button>
+          <button id="btn-parse-save">保存整段</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 弹窗 -->
+  <div id="modal-tag" class="modal hidden"><div class="modal-content">
+    <h3 id="tag-modal-title">添加提示词</h3>
+    <input type="text" id="input-cn" placeholder="提示词内容">
+    <div class="modal-actions"><button class="btn-cancel">取消</button><button class="btn-confirm">确认</button></div>
+  </div></div>
+
+  <div id="modal-confirm" class="modal hidden"><div class="modal-content">
+    <h3>⚠️ 确认删除</h3><p id="confirm-msg"></p>
+    <div class="modal-actions"><button class="btn-cancel">取消</button><button class="btn-danger">确认删除</button></div>
+  </div></div>
+
+  <div id="modal-settings" class="modal hidden"><div class="modal-content">
+    <h3>⚙️ 设置</h3>
+    <div class="setting-row"><button id="btn-export">📤 导出数据</button><button id="btn-import">📥 导入数据</button><input type="file" id="import-file" accept=".json" hidden></div>
+    <div class="setting-row"><button id="btn-reset" class="btn-danger">重置默认数据</button></div>
+    <div class="modal-actions"><button class="btn-cancel">关闭</button></div>
+  </div></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

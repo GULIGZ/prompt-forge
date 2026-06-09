@@ -1,0 +1,284 @@
+:root {
+  --bg: #1a1a2e; --bg2: #16213e; --accent: #0f3460;
+  --highlight: #e94560; --blue: #3b82f6; --green: #22c55e;
+  --yellow: #fbbf24; --text: #e2e8f0; --text2: #94a3b8; --radius: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+#app { display: flex; flex-direction: column; height: 100vh; }
+.hidden { display: none !important; }
+
+/* Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 44px; padding: 0 16px; background: var(--bg2); border-bottom: 1px solid var(--accent); flex-shrink: 0;
+}
+.logo { font-size: 16px; font-weight: bold; color: var(--highlight); }
+.mode-switch { display: flex; gap: 4px; }
+.mode-switch button, .icon-btn {
+  background: var(--accent); border: none; color: var(--text);
+  padding: 6px 14px; border-radius: var(--radius); cursor: pointer; font-size: 13px;
+}
+.mode-switch button.active { background: var(--highlight); }
+.icon-btn { padding: 4px 10px; font-size: 16px; }
+button:hover { opacity: 0.85; }
+
+main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
+
+/* ========== Canvas Area（可调整大小） ========== */
+.canvas-area {
+  flex: 0 0 38%; min-height: 180px;
+  padding: 12px; display: flex; flex-direction: column; gap: 10px;
+  border-bottom: 1px solid var(--accent);
+  position: relative; /* 为 resize 和绝对定位子元素服务 */
+}
+#input-field {
+  width: 100%; padding: 10px; background: var(--bg2);
+  border: 1px solid var(--accent); border-radius: var(--radius);
+  color: var(--text); font-size: 14px; font-family: inherit; flex-shrink: 0;
+}
+
+/* canvas-body: 包含标签 + 拖拽元素 */
+.canvas-body {
+  flex: 1; position: relative; min-height: 60px;
+  background: var(--bg2); border-radius: var(--radius); overflow: hidden;
+}
+
+.tag-canvas {
+  position: absolute; inset: 0;
+  display: flex; flex-wrap: wrap; gap: 8px;
+  align-content: flex-start; overflow-y: auto; padding: 8px;
+}
+
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; background: var(--accent); border-radius: 20px;
+  cursor: grab; font-size: 14px; font-weight: bold;
+  user-select: none; position: relative; white-space: nowrap;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.tag-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+.tag-chip .remove { color: var(--highlight); cursor: pointer; opacity: 0.5; font-size: 12px; }
+.tag-chip:hover .remove { opacity: 1; }
+
+/* 拖拽中的标签样式 */
+.tag-chip.dragging {
+  opacity: 0.35; transform: scale(0.95);
+}
+/* 吸附目标高亮 */
+.tag-chip.drag-target {
+  transform: translateX(12px);
+  box-shadow: 0 0 0 2px var(--blue), 0 0 12px rgba(59,130,246,0.4);
+}
+.tag-chip.drag-target-before {
+  transform: translateX(-12px);
+  box-shadow: 0 0 0 2px var(--blue), 0 0 12px rgba(59,130,246,0.4);
+}
+
+/* 拖拽幽灵 */
+.drag-ghost {
+  position: fixed; pointer-events: none; z-index: 9999;
+  padding: 5px 12px; background: var(--highlight); border-radius: 20px;
+  font-size: 14px; font-weight: bold; color: #fff; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(233,69,96,0.5); transform: translate(-50%, -50%);
+}
+/* 拖拽占位符（插入位置指示）*/
+.drag-placeholder {
+  position: absolute; height: 32px; min-width: 40px;
+  border: 2px dashed var(--blue); border-radius: 20px;
+  background: rgba(59,130,246,0.1); pointer-events: none;
+  z-index: 5;
+}
+
+/* Canvas Footer - 浮动在画布内右下角 */
+.canvas-footer {
+  position: absolute; bottom: 8px; right: 8px; z-index: 10;
+  display: flex; align-items: center; gap: 5px;
+  background: rgba(22,33,62,0.92); backdrop-filter: blur(8px);
+  padding: 5px 10px; border-radius: var(--radius);
+  border: 1px solid rgba(15,52,96,0.6);
+}
+.canvas-footer button {
+  background: transparent; border: none; color: var(--text2);
+  padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  transition: color 0.15s, background 0.15s;
+}
+.canvas-footer button:hover { color: var(--text); background: rgba(255,255,255,0.08); }
+
+/* Resize Handle */
+.resize-handle {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 6px;
+  cursor: ns-resize; border-radius: 0 0 var(--radius) var(--radius);
+  transition: background 0.2s;
+}
+.resize-handle:hover { background: var(--blue); }
+.resize-handle::after {
+  content: ""; position: absolute; bottom: 2px; left: 50%;
+  transform: translateX(-50%); width: 30px; height: 3px;
+  background: var(--text2); border-radius: 2px;
+}
+.resize-handle:hover::after { background: var(--blue); }
+
+/* ========== Category Tabs Bar ========== */
+.category-tabs-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 12px; overflow-x: auto;
+  background: var(--bg); border-bottom: 1px solid var(--accent);
+  scrollbar-width: none; flex-shrink: 0;
+}
+.category-tabs-bar::-webkit-scrollbar { display: none; }
+.category-tabs {
+  display: flex; gap: 6px; flex: 1; overflow-x: auto;
+}
+.category-tabs::-webkit-scrollbar { display: none; }
+
+/* 编辑按钮（固定在右侧） */
+.btn-edit-cats {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius);
+  background: var(--bg2); border: 1px solid var(--accent);
+  color: var(--text2); cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.btn-edit-cats:hover { background: var(--accent); color: var(--text); }
+.btn-edit-cats.active {
+  background: var(--highlight); border-color: var(--highlight); color: #fff;
+}
+
+/* Tab 样式 */
+.tab {
+  display: flex; align-items: center; gap: 4px;
+  padding: 7px 14px; background: var(--bg2); border-radius: var(--radius);
+  cursor: pointer; font-size: 13px; white-space: nowrap; border: 1px solid transparent;
+  transition: all 0.15s;
+}
+.tab.fixed { background: rgba(251,191,36,0.15); border-color: var(--yellow); }
+.tab.active { background: var(--accent); border-color: var(--blue); color: var(--text); }
+.tab .tab-icon { font-size: 15px; }
+.tab-add { font-size: 16px; margin-left: 4px; cursor: pointer; }
+
+/* ========== 分类编辑模式 ========== */
+.cat-edit-mode .tab { cursor: grab; }
+.cat-edit-mode .tab.fixed { cursor: default; opacity: 0.6; }
+.cat-edit-mode .tab:not(.fixed) { border-style: dashed; }
+.tab .cat-actions {
+  display: none; margin-left: 4px; gap: 2px;
+}
+.cat-edit-mode .tab:not(.fixed) .cat-actions {
+  display: flex;
+}
+.tab.drag-over { border-color: var(--blue); box-shadow: 0 0 8px rgba(59,130,246,0.4); z-index: 2; position: relative; }
+.cat-edit-mode .tab:not(.fixed) .cat-actions button {
+  background: var(--accent); border: none; color: var(--text);
+  width: 20px; height: 20px; border-radius: 4px; cursor: pointer;
+  font-size: 10px; display: flex; align-items: center; justify-content: center;
+}
+.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-del:hover { background: var(--highlight); color: #fff; }
+.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-edit:hover { background: var(--blue); }
+
+/* 编辑模式下的添加按钮 */
+.cat-edit-mode .tab-add { background: var(--green); color: #fff; border-radius: var(--radius); padding: 7px 10px; }
+
+/* ========== Library ========== */
+.library-area { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow: hidden; min-height: 0; }
+.library-toolbar { display: flex; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
+.library-toolbar input {
+  flex: 1; background: var(--bg2); border: 1px solid var(--accent);
+  border-radius: var(--radius); color: var(--text); padding: 8px 12px; font-size: 13px; font-family: inherit;
+}
+.library-toolbar button {
+  background: var(--green); border: none; color: #fff;
+  padding: 8px 14px; border-radius: var(--radius); cursor: pointer; font-size: 13px; white-space: nowrap;
+}
+
+.tag-grid {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  overflow-y: auto; padding: 4px; align-content: flex-start; flex: 1; min-height: 0;
+}
+.tag-card {
+  background: var(--bg2); border-radius: var(--radius);
+  padding: 6px 14px; text-align: center; cursor: grab;
+  position: relative; border: 1px solid transparent;
+  transition: border-color 0.15s, transform 0.15s, opacity 0.15s;
+  display: inline-flex; align-items: center; justify-content: center;
+  white-space: nowrap;
+}
+.tag-card:hover { border-color: var(--blue); transform: translateY(-1px); }
+.tag-card .cn { font-size: 14px; font-weight: bold; line-height: 1.4; }
+
+/* 收藏黄色小点 */
+.tag-card .fav-dot {
+  position: absolute; top: -4px; left: -4px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--yellow); border: 2px solid var(--bg2); z-index: 2;
+}
+.tag-card:not(.favorited) .fav-dot { display: none; }
+
+/* 卡片操作按钮 */
+.tag-card .actions {
+  display: none; position: absolute; top: 2px; right: 2px; gap: 2px;
+}
+.tag-card:hover .actions { display: flex; }
+.tag-card .actions button {
+  background: var(--accent); border: none; color: var(--text);
+  width: 22px; height: 22px; border-radius: 4px; cursor: pointer; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+.tag-card .actions .btn-fav { color: var(--yellow); }
+.tag-card .actions .btn-fav.active { background: rgba(251,191,36,0.2); }
+.tag-card .actions .btn-delete { color: var(--highlight); }
+.tag-card.favorited { border-color: rgba(251,191,36,0.4); }
+.tag-card.is-dragging { opacity: 0.35; transform: scale(0.9); }
+.tag-card.drag-over { border-color: var(--green); transform: scale(1.05); box-shadow: 0 0 8px rgba(34,197,94,0.3); }
+
+/* ========== 炸开模式 ========== */
+.parse-page {
+  flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 20px; overflow-y: auto;
+}
+.parse-page textarea {
+  width: 100%; min-height: 120px; background: var(--bg2); border: 1px solid var(--accent);
+  border-radius: var(--radius); color: var(--text); padding: 12px; font-size: 14px;
+  resize: vertical; font-family: inherit;
+}
+.parse-options { display: flex; gap: 16px; font-size: 13px; color: var(--text2); }
+.parse-options input { margin-right: 4px; }
+.parse-result {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  max-height: 400px; overflow-y: auto; padding: 4px;
+}
+.parse-result .tag-card { cursor: pointer; }
+.parse-result .tag-card:hover { opacity: 0.9; }
+.parse-result .tag-card.existing { background: rgba(59,130,246,0.15); border-color: var(--blue); }
+.parse-result .tag-card.selected { background: rgba(34,197,94,0.2); border-color: var(--green); }
+.parse-actions { display: flex; gap: 8px; justify-content: center; }
+.parse-actions button {
+  background: var(--green); border: none; color: #fff;
+  padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 14px;
+}
+
+/* ========== Modal ========== */
+.modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+}
+.modal-content {
+  background: var(--bg2); border-radius: 12px; padding: 20px;
+  width: 90%; max-width: 380px; display: flex; flex-direction: column;
+  gap: 12px; border: 1px solid var(--accent);
+}
+.modal-content h3 { font-size: 16px; margin-bottom: 4px; }
+.modal-content input {
+  background: var(--bg); border: 1px solid var(--accent);
+  border-radius: var(--radius); color: var(--text); padding: 10px; font-size: 14px; font-family: inherit;
+}
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+.modal-actions button { padding: 8px 16px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 13px; }
+.btn-cancel { background: var(--accent); color: var(--text); }
+.btn-confirm { background: var(--green); color: #fff; }
+.btn-danger { background: var(--highlight); color: #fff; }
+
+.setting-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.setting-row button { padding: 8px 14px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 13px; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
