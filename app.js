@@ -859,6 +859,9 @@ function doParse() {
 
   $$('#parse-result .tag-card:not(.existing)').forEach(card => {
     card.onclick = () => {
+      // 清除已有的分类选择器，避免重复
+      const oldSel = card.querySelector("select");
+      if (oldSel) oldSel.remove();
       card.classList.toggle("selected");
       if (card.classList.contains("selected")) {
         const sel = document.createElement("select");
@@ -1002,6 +1005,9 @@ async function doAIParse() {
     // 绑定分类选择（复现 doParse 中的逻辑）
     $$('#parse-result .tag-card:not(.existing)').forEach(card => {
       card.onclick = () => {
+        // 清除已有的分类选择器，避免重复
+        const oldSel = card.querySelector("select");
+        if (oldSel) oldSel.remove();
         card.classList.toggle("selected");
         if (card.classList.contains("selected")) {
           const sel = document.createElement("select");
