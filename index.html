@@ -68,8 +68,8 @@
               <button id="btn-reverse">🤖 反推提示词</button>
               <button id="btn-copy-reverse">📋 复制结果</button>
             </div>
-            <div id="reverse-result" class="prompt-result hidden"></div>
-            <div class="reverse-add-actions hidden" id="reverse-add-actions">
+            <div id="reverse-result" class="prompt-result"><span class="prompt-placeholder">等待反推...</span></div>
+            <div class="reverse-add-actions" id="reverse-add-actions">
               <button id="btn-reverse-to-canvas">加入画布</button>
               <button id="btn-reverse-to-library">加入词库</button>
             </div>
@@ -84,7 +84,7 @@
             <button id="btn-ai-parse" class="btn-ai-parse">🤖 AI 语义拆分</button>
           </div>
           <div class="ai-loading hidden" id="ai-loading"><span></span><span></span><span></span> AI 解析中...</div>
-          <div id="parse-result" class="parse-result"></div>
+          <div id="parse-result" class="parse-result"><span class="prompt-placeholder">拆分后的标签将在这里显示...</span></div>
           <div class="parse-actions">
             <button id="btn-parse-all">全部加入画布</button>
             <button id="btn-parse-save">保存整段</button>

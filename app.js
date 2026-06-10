@@ -830,9 +830,11 @@ function openAddCategory() {
 }
 
 // ========== 炸开解析 ==========
+const PLACEHOLDER_HTML = '<span class="prompt-placeholder">拆分后的标签将在这里显示...</span>';
+
 function doParse() {
   const text = $("#parse-input").value.trim();
-  if (!text) return $("#parse-result").innerHTML = "";
+  if (!text) { $("#parse-result").innerHTML = PLACEHOLDER_HTML; return; }
 
   const byComma = $("#opt-comma").checked, bySpace = $("#opt-space").checked;
   let parts = [text];
@@ -1051,8 +1053,7 @@ async function doReversePrompt() {
   const addActions = $("#reverse-add-actions");
   btn.textContent = "⏳ 反推中...";
   btn.disabled = true;
-  resultEl.classList.add("hidden");
-  addActions.classList.add("hidden");
+  resultEl.textContent = "⏳ 正在分析图片...";
   try {
     const { content, error } = await callOpenAI([
       { role: "system", content: "你是一个提示词反推专家。根据用户提供的图片，分析其风格、主体、光影、色彩、构图等要素，生成一个完整的提示词。" },
@@ -1061,10 +1062,8 @@ async function doReversePrompt() {
         { type: "text", text: "请反推这张图片的提示词" },
       ]},
     ], { model: apiConfig.model });
-    if (error) { alert("反推失败: " + error); return; }
+    if (error) { resultEl.textContent = "❌ " + error; return; }
     resultEl.textContent = content;
-    resultEl.classList.remove("hidden");
-    addActions.classList.remove("hidden");
   } finally {
     btn.textContent = "🤖 反推提示词";
     btn.disabled = false;
@@ -1072,15 +1071,15 @@ async function doReversePrompt() {
 }
 
 function copyReverseResult() {
-  const text = $("#reverse-result").textContent;
-  if (!text) return;
-  navigator.clipboard.writeText(text).then(() => alert("已复制")).catch(() => alert("复制失败"));
+  const el = $("#reverse-result");
+  if (!el.textContent || el.textContent.startsWith("等待") || el.textContent.startsWith("⏳") || el.textContent.startsWith("❌")) return;
+  navigator.clipboard.writeText(el.textContent).then(() => alert("已复制")).catch(() => alert("复制失败"));
 }
 
 function reverseToCanvas() {
-  const text = $("#reverse-result").textContent;
-  if (!text) return;
-  canvasTags.push({ cn: text });
+  const el = $("#reverse-result");
+  if (!el.textContent || el.textContent.startsWith("等待") || el.textContent.startsWith("⏳") || el.textContent.startsWith("❌")) return;
+  canvasTags.push({ cn: el.textContent });
   saveCanvas();
   renderCanvas();
   switchMode("paint");
@@ -1088,13 +1087,13 @@ function reverseToCanvas() {
 }
 
 function reverseToLibrary() {
-  const text = $("#reverse-result").textContent;
-  if (!text) return;
+  const el = $("#reverse-result");
+  if (!el.textContent || el.textContent.startsWith("等待") || el.textContent.startsWith("⏳") || el.textContent.startsWith("❌")) return;
   // 整段文本作为一条标签，放入当前分类
   const catId = currentCatId === FAV_CAT_ID
     ? (categories.find(c => c.id !== FAV_CAT_ID)?.id || FAV_CAT_ID)
     : currentCatId;
-  tags.push({ id: nextId++, categoryId: catId, cn: text });
+  tags.push({ id: nextId++, categoryId: catId, cn: el.textContent });
   Storage.set("tags", tags);
   renderLibrary();
   alert("已加入词库");

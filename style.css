@@ -425,7 +425,10 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   background: var(--bg); border: 1px solid var(--accent);
   border-radius: var(--radius); padding: 10px; font-size: 13px;
   line-height: 1.6; white-space: pre-wrap; word-break: break-word;
-  max-height: 200px; overflow-y: auto;
+  max-height: 200px; overflow-y: auto; min-height: 60px;
+}
+.prompt-placeholder {
+  color: var(--text2); font-size: 13px; opacity: 0.5;
 }
 .reverse-add-actions { display: flex; gap: 6px; }
 .reverse-add-actions button {
