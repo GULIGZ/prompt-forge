@@ -858,14 +858,16 @@ function doParse() {
   }).join("");
 
   $$('#parse-result .tag-card:not(.existing)').forEach(card => {
-    card.onclick = () => {
+    card.onclick = (e) => {
+      // 点击选择器本身时不干涉，让用户选择分类
+      if (e.target.closest("select")) return;
       // 清除已有的分类选择器，避免重复
       const oldSel = card.querySelector("select");
       if (oldSel) oldSel.remove();
       card.classList.toggle("selected");
       if (card.classList.contains("selected")) {
         const sel = document.createElement("select");
-        sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);color:var(--text);padding:2px 6px;border-radius:4px;font-size:11px;";
+        sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:4px 8px;font-size:12px;width:100%;";
         sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon}${c.name}</option>`).join("");
         sel.onchange = () => {
           tags.push({ id: nextId++, categoryId: +sel.value, cn: card.dataset.text });
@@ -1004,14 +1006,16 @@ async function doAIParse() {
     }).join("");
     // 绑定分类选择（复现 doParse 中的逻辑）
     $$('#parse-result .tag-card:not(.existing)').forEach(card => {
-      card.onclick = () => {
+      card.onclick = (e) => {
+        // 点击选择器本身时不干涉，让用户选择分类
+        if (e.target.closest("select")) return;
         // 清除已有的分类选择器，避免重复
         const oldSel = card.querySelector("select");
         if (oldSel) oldSel.remove();
         card.classList.toggle("selected");
         if (card.classList.contains("selected")) {
           const sel = document.createElement("select");
-          sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);color:var(--text);padding:2px 6px;border-radius:4px;font-size:11px;";
+          sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:4px 8px;font-size:12px;width:100%;";
           sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon}${c.name}</option>`).join("");
           sel.onchange = () => {
             tags.push({ id: nextId++, categoryId: +sel.value, cn: card.dataset.text });
