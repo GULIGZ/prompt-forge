@@ -53,7 +53,7 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 
 .tag-chip {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 12px; background: var(--accent); border-radius: 20px;
+  padding: 6px 14px; background: var(--accent); border-radius: var(--radius);
   cursor: grab; font-size: 14px; font-weight: bold;
   user-select: none; position: relative; white-space: nowrap;
   transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease), opacity 0.15s var(--ease);
@@ -61,22 +61,71 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .tag-chip:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
 .tag-chip .remove { color: var(--highlight); cursor: pointer; opacity: 0.5; font-size: 12px; }
 .tag-chip:hover .remove { opacity: 1; }
-
-/* 拖拽中的标签样式 — 轻微放大（transform 由 JS 内联设置） */
-.tag-chip.is-dragging {
-  opacity: 0.4 !important;
-  z-index: 100 !important;
-  cursor: grabbing !important;
+/* 静默状态：点击后变暗，复制时跳过 */
+.tag-chip.silent {
+  opacity: 0.4;
+  background: var(--bg);
+  border: 1px dashed var(--text2);
 }
+
+/* ========== Ghost（跟随鼠标的克隆体） ========== */
+.drag-ghost {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+  cursor: grabbing !important;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  transform: scale(1.08);
+  transition: none !important;
+  border: 1px solid rgba(34,197,94,0.4);
+  border-radius: var(--radius);
+  opacity: 0.95;
+  will-change: transform, left, top;
+}
+.drag-ghost.tag-chip { border-radius: var(--radius); }
+.drag-ghost .actions,
+.drag-ghost .remove,
+.drag-ghost .cat-actions { display: none !important; }
+
+/* ========== 占位符（原位置） ========== */
+.is-dragging {
+  opacity: 0.2 !important;
+  border: 1px dashed var(--blue) !important;
+  box-shadow: none !important;
+  cursor: grabbing !important;
+  transition: opacity 0.2s var(--ease), border-color 0.2s var(--ease) !important;
+}
+.cat-edit-mode .tab.is-dragging {
+  border-style: dashed !important;
+}
+
+/* ========== 缩小消失动画（参考 originPlaceholder） ========== */
+.shrink-placeholder {
+  animation: placeholder-shrink 0.3s cubic-bezier(0.86, 0, 0.07, 1) forwards;
+  overflow: hidden;
+}
+@keyframes placeholder-shrink {
+  to {
+    padding: 0 2px;
+    margin: 0;
+    border-width: 0;
+    min-width: 0;
+    flex: 0;
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
+/* 让位效果 */
 .tag-chip.push-left {
-  transform: translateX(-12px);
-  transition: transform 0.15s var(--ease);
-  opacity: 0.7;
+  transform: translateX(-14px);
+  transition: transform 0.2s var(--ease);
+  opacity: 0.5;
 }
 .tag-chip.push-right {
-  transform: translateX(12px);
-  transition: transform 0.15s var(--ease);
-  opacity: 0.7;
+  transform: translateX(14px);
+  transition: transform 0.2s var(--ease);
+  opacity: 0.5;
 }
 
 /* Canvas Footer - 浮动在画布内右下角 */
@@ -170,34 +219,33 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .insert-bar {
   position: fixed;
   width: 4px;
-  height: 32px;
+  height: 36px;
   background: #22c55e;
   border-radius: 2px;
   z-index: 99999;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.1s ease, left 0.08s ease, top 0.08s ease;
-  box-shadow: 0 0 8px rgba(34,197,94,0.6);
+  transform: scaleY(0.6);
+  transition: opacity 0.15s var(--ease), left 0.08s ease, top 0.08s ease, transform 0.15s var(--ease);
+  box-shadow: 0 0 10px rgba(34,197,94,0.5);
 }
 .insert-bar.visible {
   opacity: 1;
+  transform: scaleY(1);
 }
 
 /* 让位效果 */
 .tab.push-left {
   transform: translateX(-12px);
-  transition: transform 0.15s var(--ease);
-  opacity: 0.7;
+  transition: transform 0.2s var(--ease);
+  opacity: 0.6;
 }
 .tab.push-right {
   transform: translateX(12px);
-  transition: transform 0.15s var(--ease);
-  opacity: 0.7;
+  transition: transform 0.2s var(--ease);
+  opacity: 0.6;
 }
-.tab.is-dragging {
-  opacity: 0.35 !important; z-index: 100 !important;
-  cursor: grabbing !important;
-}
+/* .tab.is-dragging 已在上方通用 .is-dragging 中定义 */
 .cat-edit-mode .tab:not(.fixed) .cat-actions button {
   background: var(--accent); border: none; color: var(--text);
   width: 20px; height: 20px; border-radius: 4px; cursor: pointer;
@@ -216,6 +264,14 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .library-toolbar button {
   background: var(--green); border: none; color: #fff;
   padding: 8px 14px; border-radius: var(--radius); cursor: pointer; font-size: 13px; white-space: nowrap;
+}
+.btn-edit-lib {
+  background: var(--bg2) !important; border: 1px solid var(--accent) !important;
+  color: var(--text2) !important;
+}
+.btn-edit-lib:hover { background: var(--accent) !important; color: var(--text) !important; }
+.btn-edit-lib.active {
+  background: var(--highlight) !important; border-color: var(--highlight) !important; color: #fff !important;
 }
 
 .tag-grid {
@@ -242,33 +298,39 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 }
 .tag-card:not(.favorited) .fav-dot { display: none; }
 
-/* 卡片操作按钮 */
+/* 卡片操作按钮（编辑模式内联显示在文字右侧，类似分类） */
 .tag-card .actions {
-  display: none; position: absolute; top: 2px; right: 2px; gap: 2px;
+  display: none; gap: 2px;
 }
-.tag-card:hover .actions { display: flex; }
-.tag-card .actions button {
-  background: var(--accent); border: none; color: var(--text);
-  width: 22px; height: 22px; border-radius: 4px; cursor: pointer; font-size: 11px;
-  display: flex; align-items: center; justify-content: center;
+.lib-edit-mode .tag-card .actions {
+  display: inline-flex;
+  margin-left: 6px;
+  position: static;
 }
-.tag-card .actions .btn-fav { color: var(--yellow); }
-.tag-card .actions .btn-fav.active { background: rgba(251,191,36,0.2); }
-.tag-card .actions .btn-delete { color: var(--highlight); }
+.lib-edit-mode .tag-card .actions button {
+  background: var(--accent); border: none; color: var(--text2);
+  width: 20px; height: 20px; border-radius: 4px; cursor: pointer;
+  font-size: 10px; display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.lib-edit-mode .tag-card .actions .btn-fav { color: var(--yellow); }
+.lib-edit-mode .tag-card .actions .btn-fav.active { background: rgba(251,191,36,0.2); }
+.lib-edit-mode .tag-card .actions .btn-edit:hover { background: var(--blue); color: #fff; }
+.lib-edit-mode .tag-card .actions .btn-delete:hover { background: var(--highlight); color: #fff; }
 .tag-card.favorited { border-color: rgba(251,191,36,0.4); }
-.tag-card.is-dragging {
-  opacity: 0.35 !important; z-index: 100 !important;
-  cursor: grabbing !important;
-}
+/* 编辑模式标识：虚线边框提示 */
+.lib-edit-mode .tag-card { border-style: dashed; border-color: var(--accent); }
+.lib-edit-mode .tag-card:hover { border-color: var(--blue); }
+/* .tag-card.is-dragging 已在上方通用 .is-dragging 中定义 */
 .tag-card.push-left {
-  transform: translateX(-12px);
-  transition: transform 0.15s var(--ease);
-  opacity: 0.7;
+  transform: translateX(-14px);
+  transition: transform 0.2s var(--ease);
+  opacity: 0.5;
 }
 .tag-card.push-right {
-  transform: translateX(12px);
-  transition: transform 0.15s var(--ease);
-  opacity: 0.7;
+  transform: translateX(14px);
+  transition: transform 0.2s var(--ease);
+  opacity: 0.5;
 }
 
 /* ========== 炸开模式 ========== */
@@ -294,6 +356,82 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .parse-actions button {
   background: var(--green); border: none; color: #fff;
   padding: 10px 24px; border-radius: var(--radius); cursor: pointer; font-size: 14px;
+}
+
+/* == AI 语义拆分按钮 == */
+.btn-ai-parse {
+  background: var(--accent); border: none; color: var(--text);
+  padding: 4px 12px; border-radius: var(--radius); cursor: pointer; font-size: 12px;
+  white-space: nowrap; transition: background 0.15s;
+}
+.btn-ai-parse:hover { background: var(--blue); }
+.btn-ai-parse.loading { opacity: 0.6; pointer-events: none; }
+
+/* == AI 加载动画 == */
+.ai-loading {
+  display: flex; align-items: center; gap: 6px;
+  padding: 12px; font-size: 13px; color: var(--text2); justify-content: center;
+}
+.ai-loading span {
+  width: 6px; height: 6px; background: var(--blue); border-radius: 50%;
+  animation: ai-dot 1s ease-in-out infinite;
+}
+.ai-loading span:nth-child(2) { animation-delay: 0.2s; }
+.ai-loading span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ai-dot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* == 🖼️ 图片反推区域 == */
+.image-section {
+  background: var(--bg2); border-radius: var(--radius);
+  padding: 12px; display: flex; flex-direction: column; gap: 8px;
+}
+.image-section-header { font-size: 14px; font-weight: bold; color: var(--text); }
+.image-upload-area {
+  border: 2px dashed var(--accent); border-radius: var(--radius);
+  padding: 24px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s; min-height: 80px;
+  display: flex; align-items: center; justify-content: center;
+}
+.image-upload-area:hover { border-color: var(--blue); background: rgba(59,130,246,0.05); }
+.image-upload-area.dragover { border-color: var(--green); background: rgba(34,197,94,0.08); }
+.image-upload-hint { font-size: 13px; color: var(--text2); }
+.image-preview {
+  max-width: 100%; max-height: 200px; border-radius: var(--radius);
+  object-fit: contain;
+}
+.image-actions {
+  display: flex; gap: 6px;
+}
+.image-actions button {
+  background: var(--accent); border: none; color: var(--text);
+  padding: 6px 14px; border-radius: var(--radius); cursor: pointer; font-size: 12px;
+  transition: background 0.15s;
+}
+.image-actions button:hover { background: var(--blue); }
+.image-actions button:first-child { background: var(--green); color: #fff; }
+.image-actions button:first-child:hover { opacity: 0.85; }
+
+/* == 反推结果 == */
+.prompt-result {
+  background: var(--bg); border: 1px solid var(--accent);
+  border-radius: var(--radius); padding: 10px; font-size: 13px;
+  line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+  max-height: 200px; overflow-y: auto;
+}
+.reverse-add-actions { display: flex; gap: 6px; }
+.reverse-add-actions button {
+  background: var(--green); border: none; color: #fff;
+  padding: 6px 14px; border-radius: var(--radius); cursor: pointer; font-size: 12px;
+}
+.reverse-add-actions button:last-child { background: var(--accent); color: var(--text); }
+.reverse-add-actions button:hover { opacity: 0.85; }
+
+/* == 分隔线 == */
+.section-divider {
+  border: none; border-top: 1px solid var(--accent); margin: 8px 0;
 }
 
 /* ========== Modal ========== */
