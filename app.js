@@ -1095,12 +1095,40 @@ function downloadTemplate() {
 function importData(e) {
   const f = e.target.files[0];
   if (!f) return;
+  // 按文件后缀分流
+  if (f.name.endsWith(".json")) {
+    importJSON(f);
+  } else {
+    importCSV(f);
+  }
+}
+
+// JSON 导入：完整数据恢复（导出功能的逆操作）
+function importJSON(f) {
   const r = new FileReader();
   r.onload = () => {
     try {
-      const text = r.result;
+      const d = JSON.parse(r.result);
+      if (!d || typeof d !== "object") throw new Error("格式错误");
+      if (d.categories) { categories = d.categories; Storage.set("categories", categories); }
+      if (d.tags) { tags = d.tags; Storage.set("tags", tags); }
+      if (d.canvas) { canvasTags = d.canvas; Storage.set("canvas", canvasTags); }
+      location.reload();
+    } catch (err) {
+      alert("JSON 导入失败: " + err.message);
+    }
+  };
+  r.readAsText(f, "UTF-8");
+}
+
+// CSV 导入：批量添加标签
+function importCSV(f) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const raw = r.result;
       // 去除 BOM 和空行
-      const lines = text.replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
+      const lines = raw.replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) { alert("CSV 文件为空或格式错误"); return; }
 
       // 解析表头
@@ -1169,7 +1197,7 @@ function importData(e) {
       alert("CSV 导入失败: " + err.message);
     }
   };
-  r.readAsText(f, 'UTF-8');
+  r.readAsText(f, "UTF-8");
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
