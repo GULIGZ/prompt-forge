@@ -1050,10 +1050,9 @@ async function doReversePrompt() {
   }
   const btn = $("#btn-reverse");
   const resultEl = $("#reverse-result");
-  const addActions = $("#reverse-add-actions");
   btn.textContent = "⏳ 反推中...";
   btn.disabled = true;
-  resultEl.textContent = "⏳ 正在分析图片...";
+  resultEl.value = "⏳ 正在分析图片...";
   try {
     const { content, error } = await callOpenAI([
       { role: "system", content: "你是一个提示词反推专家。根据用户提供的图片，分析其风格、主体、光影、色彩、构图等要素，生成一个完整的提示词。" },
@@ -1062,8 +1061,8 @@ async function doReversePrompt() {
         { type: "text", text: "请反推这张图片的提示词" },
       ]},
     ], { model: apiConfig.model });
-    if (error) { resultEl.textContent = "❌ " + error; return; }
-    resultEl.textContent = content;
+    if (error) { resultEl.value = "❌ " + error; return; }
+    resultEl.value = content;
   } finally {
     btn.textContent = "🤖 反推提示词";
     btn.disabled = false;
@@ -1072,31 +1071,16 @@ async function doReversePrompt() {
 
 function copyReverseResult() {
   const el = $("#reverse-result");
-  if (!el.textContent || el.textContent.startsWith("等待") || el.textContent.startsWith("⏳") || el.textContent.startsWith("❌")) return;
-  navigator.clipboard.writeText(el.textContent).then(() => alert("已复制")).catch(() => alert("复制失败"));
+  if (!el.value || el.value.startsWith("等待") || el.value.startsWith("⏳") || el.value.startsWith("❌")) return;
+  navigator.clipboard.writeText(el.value).then(() => alert("已复制")).catch(() => alert("复制失败"));
 }
 
-function reverseToCanvas() {
+function reverseToParse() {
   const el = $("#reverse-result");
-  if (!el.textContent || el.textContent.startsWith("等待") || el.textContent.startsWith("⏳") || el.textContent.startsWith("❌")) return;
-  canvasTags.push({ cn: el.textContent });
-  saveCanvas();
-  renderCanvas();
-  switchMode("paint");
-  alert("已加入画布");
-}
-
-function reverseToLibrary() {
-  const el = $("#reverse-result");
-  if (!el.textContent || el.textContent.startsWith("等待") || el.textContent.startsWith("⏳") || el.textContent.startsWith("❌")) return;
-  // 整段文本作为一条标签，放入当前分类
-  const catId = currentCatId === FAV_CAT_ID
-    ? (categories.find(c => c.id !== FAV_CAT_ID)?.id || FAV_CAT_ID)
-    : currentCatId;
-  tags.push({ id: nextId++, categoryId: catId, cn: el.textContent });
-  Storage.set("tags", tags);
-  renderLibrary();
-  alert("已加入词库");
+  if (!el.value || el.value.startsWith("等待") || el.value.startsWith("⏳") || el.value.startsWith("❌")) return;
+  $("#parse-input").value = el.value;
+  switchMode("parse");
+  doParse();
 }
 
 function exportData() {
@@ -1359,8 +1343,7 @@ function bindEvents() {
   };
   $("#btn-reverse").onclick = doReversePrompt;
   $("#btn-copy-reverse").onclick = copyReverseResult;
-  $("#btn-reverse-to-canvas").onclick = reverseToCanvas;
-  $("#btn-reverse-to-library").onclick = reverseToLibrary;
+  $("#btn-reverse-to-parse").onclick = reverseToParse;
 }
 
 init();

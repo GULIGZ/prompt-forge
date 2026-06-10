@@ -374,15 +374,15 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .parse-left .image-actions button:hover { background: var(--blue); }
 .parse-left .image-actions button:first-child { background: var(--green); color: #fff; flex: 1; }
 .parse-left .image-actions button:first-child:hover { opacity: 0.85; }
-/* 反推结果区 — 撑满剩余高度 */
+/* 反推结果区 — 可编辑文本框 */
 .prompt-result {
   flex: 1; background: var(--bg); border: 1px solid var(--accent);
   border-radius: var(--radius); padding: 10px; font-size: 13px;
-  line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+  line-height: 1.6; resize: vertical; font-family: inherit; color: var(--text);
   overflow-y: auto; min-height: 50px;
 }
-.prompt-placeholder { color: var(--text2); font-size: 13px; opacity: 0.5; }
-/* 加入画布/词库按钮 */
+.prompt-result::placeholder { color: var(--text2); opacity: 0.5; }
+/* 加入拆解按钮 */
 .parse-left .reverse-add-actions {
   display: flex; gap: 6px; flex-shrink: 0;
 }
@@ -390,7 +390,7 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
   flex: 1; background: var(--green); border: none; color: #fff;
   padding: 6px 14px; border-radius: var(--radius); cursor: pointer; font-size: 12px;
 }
-.parse-left .reverse-add-actions button:last-child { background: var(--accent); color: var(--text); }
+
 .parse-left .reverse-add-actions button:hover { opacity: 0.85; }
 
 /* 右栏内容：文本解析 */
