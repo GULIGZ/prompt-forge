@@ -335,10 +335,16 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 
 /* ========== 炸开模式 ========== */
 .parse-page {
-  flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 20px; overflow-y: auto;
+  flex: 1; display: flex; flex-direction: row; gap: 16px; padding: 20px; overflow: hidden;
+}
+.parse-left, .parse-right {
+  flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow-y: auto;
+}
+.parse-right .parse-result {
+  flex: 1; max-height: none;
 }
 .parse-page textarea {
-  width: 100%; min-height: 120px; background: var(--bg2); border: 1px solid var(--accent);
+  width: 100%; min-height: 100px; background: var(--bg2); border: 1px solid var(--accent);
   border-radius: var(--radius); color: var(--text); padding: 12px; font-size: 14px;
   resize: vertical; font-family: inherit;
 }
@@ -429,11 +435,6 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 .reverse-add-actions button:last-child { background: var(--accent); color: var(--text); }
 .reverse-add-actions button:hover { opacity: 0.85; }
 
-/* == 分隔线 == */
-.section-divider {
-  border: none; border-top: 1px solid var(--accent); margin: 8px 0;
-}
-
 /* ========== Modal ========== */
 .modal {
   position: fixed; inset: 0; background: rgba(0,0,0,0.6);
@@ -457,6 +458,24 @@ main { display: flex; flex-direction: column; flex: 1; overflow: hidden; min-hei
 
 .setting-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .setting-row button { padding: 8px 14px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 13px; }
+
+/* 设置弹窗 — API 配置行 */
+.setting-label {
+  white-space: nowrap; font-size: 13px; color: var(--text2);
+}
+.setting-api { flex-wrap: nowrap; }
+.setting-input {
+  flex: 1; background: var(--bg); border: 1px solid var(--accent);
+  border-radius: var(--radius); color: var(--text); padding: 6px 10px;
+  font-size: 13px; font-family: inherit;
+}
+.setting-api-meta { flex-wrap: nowrap; }
+.setting-api-meta .setting-select { flex: 1; }
+.setting-select {
+  background: var(--bg); border: 1px solid var(--accent);
+  border-radius: var(--radius); color: var(--text); padding: 6px 8px; font-size: 13px;
+}
+.setting-status { font-size: 16px; min-width: 20px; text-align: center; }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }

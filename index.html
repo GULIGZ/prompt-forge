@@ -55,37 +55,40 @@
     <!-- 炸开模式 -->
     <main id="parse-mode" class="hidden">
       <section class="parse-page">
-        <!-- 🖼️ 图片反推 -->
-        <div class="image-section">
-          <div class="image-section-header">🖼️ 图片反推</div>
-          <div class="image-upload-area" id="image-upload-area">
-            <div class="image-upload-hint">点击上传图片 或 拖拽图片到这里</div>
-            <input type="file" id="image-input" accept="image/*" hidden>
-            <img id="image-preview" class="image-preview hidden">
-          </div>
-          <div class="image-actions">
-            <button id="btn-reverse">🤖 反推提示词</button>
-            <button id="btn-copy-reverse">📋 复制结果</button>
-          </div>
-          <div id="reverse-result" class="prompt-result hidden"></div>
-          <div class="reverse-add-actions hidden" id="reverse-add-actions">
-            <button id="btn-reverse-to-canvas">加入画布</button>
-            <button id="btn-reverse-to-library">加入词库</button>
+        <div class="parse-left">
+          <!-- 🖼️ 图片反推 -->
+          <div class="image-section">
+            <div class="image-section-header">🖼️ 图片反推</div>
+            <div class="image-upload-area" id="image-upload-area">
+              <div class="image-upload-hint">点击上传图片 或 拖拽图片到这里</div>
+              <input type="file" id="image-input" accept="image/*" hidden>
+              <img id="image-preview" class="image-preview hidden">
+            </div>
+            <div class="image-actions">
+              <button id="btn-reverse">🤖 反推提示词</button>
+              <button id="btn-copy-reverse">📋 复制结果</button>
+            </div>
+            <div id="reverse-result" class="prompt-result hidden"></div>
+            <div class="reverse-add-actions hidden" id="reverse-add-actions">
+              <button id="btn-reverse-to-canvas">加入画布</button>
+              <button id="btn-reverse-to-library">加入词库</button>
+            </div>
           </div>
         </div>
-        <hr class="section-divider">
-        <!-- 📝 文本解析 -->
-        <textarea id="parse-input" placeholder="粘贴整段提示词，自动拆解..."></textarea>
-        <div class="parse-options">
-          <label><input type="checkbox" id="opt-comma" checked> 逗号切分</label>
-          <label><input type="checkbox" id="opt-space"> 空格切分</label>
-          <button id="btn-ai-parse" class="btn-ai-parse">🤖 AI 语义拆分</button>
-        </div>
-        <div class="ai-loading hidden" id="ai-loading"><span></span><span></span><span></span> AI 解析中...</div>
-        <div id="parse-result" class="parse-result"></div>
-        <div class="parse-actions">
-          <button id="btn-parse-all">全部加入画布</button>
-          <button id="btn-parse-save">保存整段</button>
+        <div class="parse-right">
+          <!-- 📝 文本解析 -->
+          <textarea id="parse-input" placeholder="粘贴整段提示词，自动拆解..."></textarea>
+          <div class="parse-options">
+            <label><input type="checkbox" id="opt-comma" checked> 逗号切分</label>
+            <label><input type="checkbox" id="opt-space"> 空格切分</label>
+            <button id="btn-ai-parse" class="btn-ai-parse">🤖 AI 语义拆分</button>
+          </div>
+          <div class="ai-loading hidden" id="ai-loading"><span></span><span></span><span></span> AI 解析中...</div>
+          <div id="parse-result" class="parse-result"></div>
+          <div class="parse-actions">
+            <button id="btn-parse-all">全部加入画布</button>
+            <button id="btn-parse-save">保存整段</button>
+          </div>
         </div>
       </section>
     </main>
@@ -107,16 +110,18 @@
   <div id="modal-settings" class="modal hidden"><div class="modal-content">
     <h3>⚙️ 设置</h3>
     <div class="setting-row"><button id="btn-export">📤 导出数据</button><button id="btn-import">📥 导入数据</button><button id="btn-template">📋 下载模版</button><input type="file" id="import-file" accept=".json,.csv" hidden></div>
-    <div class="setting-row" style="flex-wrap:nowrap;gap:6px">
-      <span style="white-space:nowrap;font-size:13px;color:var(--text2)">🔑 API</span>
-      <input type="password" id="input-api-key" placeholder="sk-..." style="flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit">
-      <select id="select-provider" style="background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:6px 8px;font-size:12px">
+    <div class="setting-row setting-api">
+      <span class="setting-label">🔑 API</span>
+      <input type="password" id="input-api-key" class="setting-input" placeholder="sk-...">
+    </div>
+    <div class="setting-row setting-api-meta">
+      <select id="select-provider" class="setting-select">
         <option value="openai">OpenAI</option>
         <option value="xiaomi">小米 MiMo</option>
       </select>
-      <select id="select-model" style="background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:6px 8px;font-size:13px">
+      <select id="select-model" class="setting-select">
       </select>
-      <span id="api-status" style="font-size:16px"></span>
+      <span id="api-status" class="setting-status"></span>
     </div>
     <div class="setting-row"><button id="btn-reset" class="btn-danger">重置默认数据</button></div>
     <div class="modal-actions"><button class="btn-cancel">关闭</button></div>
