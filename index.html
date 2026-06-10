@@ -110,9 +110,11 @@
     <div class="setting-row" style="flex-wrap:nowrap;gap:6px">
       <span style="white-space:nowrap;font-size:13px;color:var(--text2)">🔑 API</span>
       <input type="password" id="input-api-key" placeholder="sk-..." style="flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:6px 10px;font-size:13px;font-family:inherit">
+      <select id="select-provider" style="background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:6px 8px;font-size:12px">
+        <option value="openai">OpenAI</option>
+        <option value="xiaomi">小米 MiMo</option>
+      </select>
       <select id="select-model" style="background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:6px 8px;font-size:13px">
-        <option value="gpt-4o">GPT-4o</option>
-        <option value="gpt-4o-mini" selected>GPT-4o-mini</option>
       </select>
       <span id="api-status" style="font-size:16px"></span>
     </div>

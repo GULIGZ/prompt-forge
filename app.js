@@ -41,7 +41,21 @@ let catEditMode = false;
 let libEditMode = false;
 
 // API 配置
-let apiConfig = Storage.get("apiConfig", { key: "", model: "gpt-4o-mini" });
+const API_PROVIDERS = {
+  openai: { baseURL: "https://api.openai.com/v1", supportsVision: true, name: "OpenAI" },
+  xiaomi: { baseURL: "https://api.xiaomimimo.com/v1", supportsVision: true, name: "小米 MiMo" },
+};
+const PROVIDER_MODELS = {
+  openai: [
+    { value: "gpt-4o", label: "GPT-4o" },
+    { value: "gpt-4o-mini", label: "GPT-4o-mini" },
+  ],
+  xiaomi: [
+    { value: "mimo-v2.5", label: "mimo-v2.5" },
+  ],
+};
+let apiConfig = Storage.get("apiConfig", { key: "", model: "gpt-4o-mini", provider: "openai" });
+if (!apiConfig.provider) apiConfig.provider = "openai";
 
 // 三区拖拽共享状态结构：{ active, ghost, el, idx, insertIdx, startX, startY, origLeft, origTop, latestX, latestY }
 let _catDrag = { active: false, ghost: null, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, latestX: 0, latestY: 0 };
@@ -898,13 +912,22 @@ async function callOpenAI(messages, options = {}) {
     alert("请先在设置中配置 API 密钥 🔑");
     return { content: "", error: "NO_KEY" };
   }
+  const provider = API_PROVIDERS[apiConfig.provider] || API_PROVIDERS.openai;
   try {
     const body = { model, messages, stream: !!onStream };
     if (!onStream) body.temperature = 0.3;
 
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    const headers = { "Content-Type": "application/json" };
+    // 不同服务商认证方式不同：OpenAI 用 Bearer，小米用 api-key
+    if (apiConfig.provider === "xiaomi") {
+      headers["api-key"] = apiConfig.key;
+    } else {
+      headers["Authorization"] = `Bearer ${apiConfig.key}`;
+    }
+
+    const res = await fetch(`${provider.baseURL}/chat/completions`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiConfig.key}` },
+      headers,
       body: JSON.stringify(body),
     });
     if (!res.ok) {
@@ -1019,6 +1042,10 @@ function handleImageUpload(file) {
 async function doReversePrompt() {
   if (!_reverseImageData) return alert("请先上传图片");
   if (!apiConfig.key) return alert("请先在设置中配置 API 密钥 🔑");
+  const provider = API_PROVIDERS[apiConfig.provider] || API_PROVIDERS.openai;
+  if (!provider.supportsVision) {
+    return alert("当前" + provider.name + "不支持图片反推功能，请切换到 OpenAI 使用此功能");
+  }
   const btn = $("#btn-reverse");
   const resultEl = $("#reverse-result");
   const addActions = $("#reverse-add-actions");
@@ -1033,7 +1060,7 @@ async function doReversePrompt() {
         { type: "image_url", image_url: { url: _reverseImageData, detail: "high" } },
         { type: "text", text: "请反推这张图片的提示词" },
       ]},
-    ], { model: "gpt-4o" }); // 反推必须用 vision 模型
+    ], { model: apiConfig.model });
     if (error) { alert("反推失败: " + error); return; }
     resultEl.textContent = content;
     resultEl.classList.remove("hidden");
@@ -1261,18 +1288,39 @@ function bindEvents() {
   $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); closeModals(); };
 
   // 设置
+  // 根据服务商更新模型下拉选项
+  function updateModelOptions(provider) {
+    const sel = $("#select-model");
+    const models = PROVIDER_MODELS[provider] || PROVIDER_MODELS.openai;
+    sel.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
+  }
   $("#btn-settings").onclick = () => {
     $("#input-api-key").value = apiConfig.key;
+    $("#select-provider").value = apiConfig.provider;
+    updateModelOptions(apiConfig.provider);
     $("#select-model").value = apiConfig.model;
+    // 如果当前模型不在新选项里，选第一个
+    if (!$("#select-model").querySelector(`option[value="${apiConfig.model}"]`)) {
+      apiConfig.model = $("#select-model").value;
+    }
     $("#api-status").textContent = apiConfig.key ? "✔️" : "";
     $("#modal-settings").classList.remove("hidden");
   };
-  // 保存 API 配置（关闭设置时自动保存）
+  // 保存 API 配置
   const saveApiConfig = () => {
     apiConfig.key = $("#input-api-key").value.trim();
     apiConfig.model = $("#select-model").value;
+    apiConfig.provider = $("#select-provider").value;
     Storage.set("apiConfig", apiConfig);
     $("#api-status").textContent = apiConfig.key ? "✔️" : "";
+  };
+  // 切换服务商 → 更新模型列表
+  $("#select-provider").onchange = () => {
+    const p = $("#select-provider").value;
+    updateModelOptions(p);
+    // 自动选中该服务商的第一个模型
+    apiConfig.model = $("#select-model").value;
+    saveApiConfig();
   };
   $("#input-api-key").oninput = saveApiConfig;
   $("#select-model").onchange = saveApiConfig;
