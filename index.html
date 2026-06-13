@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -9,53 +10,65 @@
 <body>
   <div id="app">
     <header class="header">
-      <div class="logo">PromptForge</div>
+      <div class="logo"><span class="logomark">P</span>PromptForge</div>
       <nav class="mode-switch">
-        <button id="btn-paint" class="active">🎨 提示词</button>
-        <button id="btn-parse-mode">🧩 炸开</button>
+        <button id="btn-paint" class="active"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg> 提示词</button>
+        <button id="btn-parse-mode"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> 炸开</button>
       </nav>
-      <button id="btn-settings" class="icon-btn">⚙️</button>
+      <button id="btn-settings" class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </header>
 
     <!-- 提示词模式 -->
     <main id="paint-mode">
-      <section class="canvas-area" id="canvas-area">
-        <input type="text" id="input-field" placeholder="输入提示词，按两下空格键变成标签...">
+      <!-- 左侧面板：编辑 + 画布 + 预览 -->
+      <section class="left-panel">
+        <div class="input-row">
+          <input type="text" id="input-field" placeholder="输入提示词，按两下空格键变成标签...">
+          <button id="btn-add-to-canvas" class="btn-add-to-canvas">添加</button>
+        </div>
+        <div class="tool-row">
+          <div class="empty-tag-drag" id="empty-tag-drag">+ 空标签</div>
+        </div>
         <div class="canvas-body">
           <div id="tag-canvas" class="tag-canvas"></div>
           <!-- 工具栏：浮动在画布内右下角 -->
           <div class="canvas-footer">
-            <button id="btn-translate" title="切换中英文">中/英</button>
-            <button id="btn-copy">📋 复制</button>
-            <button id="btn-clear">🗑️ 清空</button>
+            <button id="btn-translate" title="切换中英文"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></button>
+            <button id="btn-copy"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制</button>
+            <button id="btn-clear"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg> 清空</button>
           </div>
         </div>
-        <!-- 调整大小手柄 -->
-        <div class="resize-handle" id="resize-handle"></div>
+        <div id="prompt-preview" class="prompt-preview">等待生成...</div>
       </section>
 
-      <nav class="category-tabs-bar">
-        <div id="category-tabs" class="category-tabs"></div>
-        <div class="cat-bar-actions">
-          <div id="btn-add-cat" class="tab tab-add hidden">+ 新增</div>
-          <button id="btn-edit-cats" class="btn-edit-cats" title="编辑分类">✏️</button>
-        </div>
-      </nav>
+      <!-- 分隔条 -->
+      <div class="panel-divider" id="panel-divider"></div>
 
-      <section class="library-area">
-        <div class="library-toolbar">
-          <input type="text" id="search-input" placeholder="🔍 搜索当前分类...">
-          <button id="btn-edit-lib" class="btn-edit-lib" title="编辑词库">✏️</button>
-          <button id="btn-add-tag">+ 添加</button>
-        </div>
-        <div id="tag-grid" class="tag-grid"></div>
+      <!-- 右侧面板：分类 + 词库 -->
+      <section class="right-panel">
+        <nav class="category-tabs-bar">
+          <div id="category-tabs" class="category-tabs"></div>
+          <div class="cat-bar-actions">
+            <div id="btn-add-cat" class="tab tab-add hidden"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 新增</div>
+            <button id="btn-edit-cats" class="btn-edit-cats" title="编辑分类"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+          </div>
+        </nav>
+
+        <section class="library-area">
+          <div class="library-toolbar">
+            <input type="text" id="search-input" placeholder="搜索所有分类...">
+            <button id="btn-edit-lib" class="btn-edit-lib" title="编辑词库"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
+            <button id="btn-add-tag"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> 添加</button>
+          </div>
+          <div id="tag-grid" class="tag-grid"></div>
+        </section>
       </section>
     </main>
 
     <!-- 炸开模式 -->
     <main id="parse-mode" class="hidden">
       <section class="parse-page">
-        <div class="parse-left" data-title="🖼️ 图片反推">
+        <div class="parse-left" data-title="图片反推">
           <div class="image-section">
             <div class="image-upload-area" id="image-upload-area">
               <div class="image-upload-hint">点击上传图片 或 拖拽图片到这里</div>
@@ -63,8 +76,8 @@
               <img id="image-preview" class="image-preview hidden">
             </div>
             <div class="image-actions">
-              <button id="btn-reverse">🤖 反推提示词</button>
-              <button id="btn-copy-reverse">📋 复制结果</button>
+              <button id="btn-reverse"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4"/><path d="M8 16H6a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M8 16v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2"/><circle cx="8" cy="12" r=".5"/><circle cx="16" cy="12" r=".5"/></svg> 反推提示词</button>
+              <button id="btn-copy-reverse"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 复制结果</button>
             </div>
             <textarea id="reverse-result" class="prompt-result" placeholder="等待反推..."></textarea>
             <div class="reverse-add-actions" id="reverse-add-actions">
@@ -72,13 +85,13 @@
             </div>
           </div>
         </div>
-        <div class="parse-right" data-title="📝 文本解析">
+        <div class="parse-right" data-title="文本解析">
           <!-- 📝 文本解析 -->
           <textarea id="parse-input" placeholder="粘贴整段提示词，自动拆解..."></textarea>
           <div class="parse-options">
             <label><input type="checkbox" id="opt-comma" checked> 逗号切分</label>
             <label><input type="checkbox" id="opt-space"> 空格切分</label>
-            <button id="btn-ai-parse" class="btn-ai-parse">🤖 AI 语义拆分</button>
+            <button id="btn-ai-parse" class="btn-ai-parse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4"/><path d="M8 16H6a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M8 16v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2"/></svg> AI 语义拆分</button>
           </div>
           <div class="ai-loading hidden" id="ai-loading"><span></span><span></span><span></span> AI 解析中...</div>
           <div id="parse-result" class="parse-result"><span class="prompt-placeholder">拆分后的标签将在这里显示...</span></div>
@@ -100,15 +113,15 @@
   </div></div>
 
   <div id="modal-confirm" class="modal hidden"><div class="modal-content">
-    <h3>⚠️ 确认删除</h3><p id="confirm-msg"></p>
+    <h3>确认删除</h3><p id="confirm-msg"></p>
     <div class="modal-actions"><button class="btn-cancel">取消</button><button class="btn-danger">确认删除</button></div>
   </div></div>
 
   <div id="modal-settings" class="modal hidden"><div class="modal-content">
-    <h3>⚙️ 设置</h3>
-    <div class="setting-row"><button id="btn-export">📤 导出数据</button><button id="btn-import">📥 导入数据</button><button id="btn-template">📋 下载模版</button><input type="file" id="import-file" accept=".json,.csv" hidden></div>
+    <h3>设置</h3>
+    <div class="setting-row"><button id="btn-export"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> 导出数据</button><button id="btn-import"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 导入数据</button><button id="btn-template"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 下载模版</button><input type="file" id="import-file" accept=".json,.csv" hidden></div>
     <div class="setting-row setting-api">
-      <span class="setting-label">🔑 API</span>
+      <span class="setting-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> API</span>
       <input type="password" id="input-api-key" class="setting-input" placeholder="sk-...">
     </div>
     <div class="setting-row setting-api-meta">
@@ -123,6 +136,12 @@
     <div class="setting-row"><button id="btn-reset" class="btn-danger">重置默认数据</button></div>
     <div class="modal-actions"><button class="btn-cancel">关闭</button></div>
   </div></div>
+
+  <!-- 撤销通知 -->
+  <div id="undo-toast" class="undo-toast hidden">
+    <span id="undo-msg"></span>
+    <button id="btn-undo">撤销</button>
+  </div>
 
   <script src="./app.js"></script>
 </body>

@@ -27,6 +27,41 @@ const DEFAULT_TAGS = [
   { id: 11, categoryId: 11, cn: "虚幻引擎" }, { id: 12, categoryId: 11, cn: "电影级" },
 ];
 
+// ========== SVG 图标映射 ==========
+const _S = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+const _C = (cx, cy, r) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="${cx}" cy="${cy}" r="${r}"/></svg>`;
+const _P = (pts) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="${pts}"/></svg>`;
+const ICON_SVG = {
+  '⭐': _S('M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'),
+  '🎨': _S('M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z'),
+  '🏞️': _S('M3 3h18v18H3V3zm0 12l5-5 4 4 3-3 6 6'),
+  '🎭': _S('M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16zM12 22V12'),
+  '🧍': _S('M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 7a4 4 0 100-8 4 4 0 000 8z'),
+  '👤': _S('M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 3a4 4 0 100 8 4 4 0 000-8z'),
+  '👔': _S('M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M12 22V10'),
+  '💡': _S('M9 18h6M10 22h4M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14'),
+  '🌈': _S('M22 17a10 10 0 00-20 0M6 17a6 6 0 0112 0M10 17a2 2 0 014 0'),
+  '📷': _S('M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2zM12 17a4 4 0 100-8 4 4 0 000 8z'),
+  '✨': _S('M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3zM18 13l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z'),
+  '🏷️': _S('M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01'),
+  '✏️': _S('M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z'),
+  '🗑️': _S('M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6'),
+  '✕': _S('M18 6L6 18M6 6l12 12'),
+  '🔍': _S('M10 2a8 8 0 107.29 11.71L22 18.59 18.59 22l-4.88-4.71A8 8 0 0010 2z'),
+  '⚙️': _S('M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z'),
+  '🧩': _S('M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM8.5 3v3.5a1.5 1.5 0 01-3 0V3M15.5 3v3.5a1.5 1.5 0 003 0V3M12 10v.5a1.5 1.5 0 01-3 0V10M12 10h.5a1.5 1.5 0 000-3H12M12 10v.5a1.5 1.5 0 003 0V10'),
+  '📋': _S('M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2M15 2H9a1 1 0 00-1 1v2a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1z'),
+  '📤': _S('M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12'),
+  '📥': _S('M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3'),
+  '🔑': _S('M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4'),
+  '🤖': _S('M12 8V4M8 16H6a2 2 0 01-2-2v-4a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2h-2M8 16v2a2 2 0 002 2h4a2 2 0 002-2v-2M8 12h.01M16 12h.01'),
+  '🖼️': _S('M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM21 15l-5-5L5 21'),
+  '+': _S('M12 5v14M5 12h14'),
+  '🌐': _C(12, 12, 10) + '<line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>',
+};
+function renderIcon(key) { return `<span class="icon-svg">${ICON_SVG[key] || key}</span>`; }
+function iconSvg(key) { return ICON_SVG[key] || key; }
+
 // ========== 状态 ==========
 let categories = Storage.get("categories", DEFAULT_CATEGORIES);
 let tags = Storage.get("tags", DEFAULT_TAGS);
@@ -61,6 +96,14 @@ if (!apiConfig.provider) apiConfig.provider = "openai";
 let _catDrag = { active: false, ghost: null, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, latestX: 0, latestY: 0 };
 let _libDrag = { active: false, ghost: null, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, latestX: 0, latestY: 0 };
 let _canvasDrag = { active: false, ghost: null, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, latestX: 0, latestY: 0 };
+
+// 空标签拖拽状态
+let _emptyDrag = { active: false, ghost: null, el: null, startX: 0, startY: 0, origLeft: 0, origTop: 0 };
+
+// 撤销栈
+const _undoStack = [];
+const UNDO_MAX = 5;
+let _undoTimer = null;
 
 // ========== 通用竖条光标系统（三区共用）==========
 const _bars = {}; // { canvas: DOM, library: DOM, category: DOM }
@@ -282,6 +325,74 @@ function startDragGhost(state, el, e) {
   document.body.style.webkitUserSelect = 'none';
 }
 
+// ========== 空标签拖拽 ==========
+function initEmptyTagDrag() {
+  const emptyEl = document.getElementById('empty-tag-drag');
+  if (!emptyEl) return;
+
+  let rafId = null;
+  let wasMoved = false;
+
+  emptyEl.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    wasMoved = false;
+    const r = emptyEl.getBoundingClientRect();
+    const ghost = emptyEl.cloneNode(true);
+    ghost.className = 'empty-tag-drag drag-ghost';
+    ghost.style.cssText = '';
+    ghost.style.position = 'fixed';
+    ghost.style.left = r.left + 'px';
+    ghost.style.top = r.top + 'px';
+    ghost.style.width = r.width + 'px';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.zIndex = '10000';
+    ghost.style.margin = '0';
+    document.body.appendChild(ghost);
+    _emptyDrag = { active: true, ghost, el: emptyEl, startX: e.clientX, startY: e.clientY, origLeft: r.left, origTop: r.top };
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!_emptyDrag.active || !_emptyDrag.ghost) return;
+    if (Math.abs(e.clientX - _emptyDrag.startX) > 5 || Math.abs(e.clientY - _emptyDrag.startY) > 5) wasMoved = true;
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = null;
+      if (_emptyDrag.ghost) {
+        const dx = e.clientX - _emptyDrag.startX;
+        const dy = e.clientY - _emptyDrag.startY;
+        _emptyDrag.ghost.style.left = (_emptyDrag.origLeft + dx) + 'px';
+        _emptyDrag.ghost.style.top = (_emptyDrag.origTop + dy) + 'px';
+      }
+    });
+  }, { passive: true });
+
+  document.addEventListener('mouseup', (e) => {
+    if (!_emptyDrag.active) return;
+    _emptyDrag.active = false;
+    document.body.style.userSelect = '';
+    if (_emptyDrag.ghost) { _emptyDrag.ghost.remove(); _emptyDrag.ghost = null; }
+    _emptyDrag.el = null;
+
+    if (!wasMoved) return;
+
+    // 检测是否落在画布区域
+    const canvas = document.getElementById('tag-canvas');
+    if (!canvas) return;
+    const cr = canvas.getBoundingClientRect();
+    if (e.clientX >= cr.left && e.clientX <= cr.right && e.clientY >= cr.top && e.clientY <= cr.bottom) {
+      setTimeout(() => {
+        const text = prompt("输入标签文字:");
+        if (text && text.trim()) {
+          canvasTags.push({ cn: text.trim() });
+          saveCanvas(); renderCanvas();
+        }
+      }, 50);
+    }
+  });
+}
+
 // 鼠标移出窗口时取消所有拖拽（只绑一次）
 if (!window._dragCleanupBound) {
   window._dragCleanupBound = true;
@@ -312,10 +423,11 @@ function init() {
   currentCatId = currentCatId || categories[0]?.id;
   renderTabs(); renderLibrary(); renderCanvas();
   bindEvents();
-  initResize();
+  initPanelResize(); // 左右面板分隔条拖拽
   initDragDelegation(); // 事件委托：三区 mousedown 统一处理
   initCatDragListeners(); // 分类拖拽 document 级 mousemove/mouseup
   initLibDragListeners(); // 词库拖拽 document 级 mousemove/mouseup
+  initEmptyTagDrag(); // 空标签拖拽
 }
 
 // ========== 渲染 ==========
@@ -329,15 +441,15 @@ function renderTabs() {
     if (c.id === currentCatId) cls.push("active");
     if (c.fixed) cls.push("fixed");
 
-    const actions = catEditMode && !c.fixed
-      ? `<span class="cat-actions">
-           <button class="btn-cat-edit" data-id="${c.id}">✏️</button>
-           <button class="btn-cat-del" data-id="${c.id}">✕</button>
-         </span>`
-      : "";
+    // 编辑按钮始终渲染在 HTML 中，CSS 控制显隐（避免切换编辑模式时重建 DOM 导致的闪烁）
+    const actions = c.fixed ? ""
+      : `<span class="cat-actions">
+           <button class="btn-cat-edit" data-id="${c.id}">${iconSvg('✏️')}</button>
+           <button class="btn-cat-del" data-id="${c.id}">${iconSvg('✕')}</button>
+         </span>`;
 
     return `<div class="${cls.join(' ')}" data-id="${c.id}">
-      <span class="tab-icon">${c.icon}</span>${c.name}${actions}
+      ${renderIcon(c.icon)}${c.name}${actions}
     </div>`;
   }).join("");
 
@@ -351,6 +463,32 @@ function renderTabs() {
 function renderLibrary() {
   const kw = $("#search-input").value.trim().toLowerCase();
   let list;
+  if (kw) {
+    // 全局搜索：跨所有分类
+    list = tags.filter(t => t.cn.includes(kw));
+    const el = $("#tag-grid");
+    el.classList.toggle("lib-edit-mode", libEditMode);
+    if (list.length === 0) {
+      el.innerHTML = `<div style="width:100%;text-align:center;color:var(--text3);padding:20px;">无匹配结果</div>`;
+      bindCardEvents(); return;
+    }
+    el.innerHTML = list.map((t, i) => {
+      const cat = categories.find(c => c.id === t.categoryId);
+      return `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
+        <span class="fav-dot"></span>
+        <span class="cn">${t.cn}</span>
+        ${t.en ? `<span class="en">${t.en}</span>` : ''}
+        ${cat && cat.id !== FAV_CAT_ID ? `<span class="cat-label">${cat.icon} ${cat.name}</span>` : ''}
+        <div class="actions">
+          <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
+          <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
+          <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
+        </div>
+      </div>`;
+    }).join("");
+    bindCardEvents(); return;
+  }
+
   if (currentCatId === FAV_CAT_ID) {
     list = tags.filter(t => t.favorited && (!kw || t.cn.includes(kw)));
   } else {
@@ -359,17 +497,18 @@ function renderLibrary() {
   const el = $("#tag-grid");
   el.classList.toggle("lib-edit-mode", libEditMode);
   if (list.length === 0 && kw) {
-    el.innerHTML = `<div style="width:100%;text-align:center;color:#94a3b8;padding:20px;">无匹配结果</div>`;
+    el.innerHTML = `<div style="width:100%;text-align:center;color:var(--text3);padding:20px;">无匹配结果</div>`;
     bindCardEvents(); return;
   }
   el.innerHTML = list.map((t, i) =>
     `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
       <span class="fav-dot"></span>
       <span class="cn">${t.cn}</span>
+      ${t.en ? `<span class="en">${t.en}</span>` : ''}
       <div class="actions">
-        <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">★</button>
-        <button class="btn-edit" data-id="${t.id}">✏️</button>
-        <button class="btn-delete" data-id="${t.id}">🗑️</button>
+        <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
+        <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
+        <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
       </div>
     </div>`
   ).join("");
@@ -384,6 +523,21 @@ function renderCanvas() {
     </div>`
   ).join("");
   bindCanvasMouseDrag();
+  renderPreview(); // ← 更新预览
+}
+
+// ========== 提示词预览区 ==========
+function renderPreview() {
+  const el = $("#prompt-preview");
+  const active = canvasTags.filter(t => !t.silent);
+  if (active.length === 0) {
+    el.textContent = "";
+    el.dataset.placeholder = "等待生成...";
+    el.classList.add("placeholder");
+    return;
+  }
+  el.classList.remove("placeholder");
+  el.textContent = active.map(t => showEn ? (t.en || t.cn) : t.cn).join(", ");
 }
 
 // ========== 分类 Tab 拖拽排序（间隙插入模式）==========
@@ -501,7 +655,7 @@ function bindCatEditActions() {
     if (!cat) return;
     const name = prompt("修改分类名称:", cat.name);
     if (name && name.trim()) cat.name = name.trim();
-    const icon = prompt("修改图标 emoji:", cat.icon);
+    const icon = prompt("修改图标（粘贴图标编号或 emoji）:", cat.icon);
     if (icon && icon.trim()) cat.icon = icon.trim();
     Storage.set("categories", categories); renderTabs();
   });
@@ -530,8 +684,10 @@ function bindCardEvents() {
   $$('.btn-edit').forEach(b => b.onclick = (e) => { e.stopPropagation(); openTagModal(false, +b.dataset.id); });
   $$('.btn-delete').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
-    openConfirm(`确定删除 "${tags.find(t => t.id === +b.dataset.id)?.cn}" 吗？`, () => {
+    const tag = tags.find(t => t.id === +b.dataset.id);
+    openConfirm(`确定删除 "${tag?.cn}" 吗？`, () => {
       tags = tags.filter(t => t.id !== +b.dataset.id); Storage.set("tags", tags); renderLibrary();
+      if (tag) { pushUndo({ type: 'tag-delete', data: tag }); showUndoToast(`已删除「${tag.cn}」`); }
     });
   });
 }
@@ -717,7 +873,13 @@ function bindCanvasMouseDrag() {
   // 删除按钮
   $$('.tag-chip .remove').forEach(x => x.onclick = (e) => {
     e.stopPropagation();
-    canvasTags.splice(+x.dataset.idx, 1); saveCanvas(); renderCanvas();
+    const idx = +x.dataset.idx;
+    if (idx >= 0 && idx < canvasTags.length) {
+      const removed = canvasTags[idx];
+      canvasTags.splice(idx, 1); saveCanvas(); renderCanvas();
+      pushUndo({ type: 'canvas-remove', data: { idx, tag: { ...removed } } });
+      showUndoToast(`已移除「${removed.cn}」`);
+    }
   });
 
   // 点击标签切换静默状态（拖拽过后不切换）
@@ -735,34 +897,72 @@ function bindCanvasMouseDrag() {
   });
 }
 
-// ========== Canvas 区域大小调整 ==========
-function initResize() {
-  const area = $("#canvas-area");
-  const handle = $("#resize-handle");
-  let startY, startHeight, isResizing = false;
+// ========== 撤销系统 ==========
+function pushUndo(action) {
+  _undoStack.push(action);
+  if (_undoStack.length > UNDO_MAX) _undoStack.shift();
+}
 
-  handle.onmousedown = (e) => {
-    isResizing = true;
-    startY = e.clientY;
-    startHeight = area.offsetHeight;
-    document.body.style.cursor = 'ns-resize';
+function showUndoToast(msg) {
+  const toast = $("#undo-toast");
+  const msgEl = $("#undo-msg");
+  msgEl.textContent = msg;
+  toast.classList.remove("hidden");
+  clearTimeout(_undoTimer);
+  _undoTimer = setTimeout(() => { toast.classList.add("hidden"); }, 5000);
+}
+
+function hideUndoToast() {
+  clearTimeout(_undoTimer);
+  $("#undo-toast").classList.add("hidden");
+}
+
+$("#btn-undo").onclick = () => {
+  const action = _undoStack.pop();
+  if (!action) return;
+  hideUndoToast();
+  switch (action.type) {
+    case 'tag-delete':
+      tags.push(action.data);
+      Storage.set("tags", tags);
+      renderLibrary(); break;
+    case 'canvas-remove':
+      canvasTags.splice(action.data.idx, 0, action.data.tag);
+      saveCanvas(); renderCanvas(); break;
+    case 'canvas-clear':
+      canvasTags = action.data;
+      saveCanvas(); renderCanvas(); break;
+  }
+};
+
+// ========== 左右面板分隔条拖拽 ==========
+function initPanelResize() {
+  const divider = $("#panel-divider");
+  const leftPanel = document.querySelector('.left-panel');
+  let startX, startWidth, isResizing = false;
+
+  divider.onmousedown = (e) => {
+    isResizing = true; startX = e.clientX;
+    startWidth = leftPanel.offsetWidth;
+    divider.classList.add('active');
+    document.body.style.cursor = 'ew-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
   };
 
   document.addEventListener('mousemove', (e) => {
     if (!isResizing) return;
-    const delta = e.clientY - startY;
-    const newHeight = Math.max(180, startHeight + delta);
-    // 限制最大高度不超过窗口的 70%
-    const maxH = window.innerHeight * 0.7;
-    area.style.flex = 'none';
-    area.style.height = Math.min(newHeight, maxH) + 'px';
+    const delta = e.clientX - startX;
+    const newWidth = Math.max(280, startWidth + delta);
+    const maxW = window.innerWidth * 0.6;
+    leftPanel.style.flex = 'none';
+    leftPanel.style.width = Math.min(newWidth, maxW) + 'px';
   });
 
   document.addEventListener('mouseup', () => {
     if (!isResizing) return;
     isResizing = false;
+    divider.classList.remove('active');
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   });
@@ -779,10 +979,132 @@ function switchMode(mode) {
 
 function saveCanvas() { Storage.set("canvas", canvasTags); }
 
-// 翻译：只影响画布！
-function translateToggle() {
+// 百度翻译配置
+const BAIDU_CONFIG = { appid: '20260612002630330', key: 'pppsq04tDgJ1ml_1bu3i' };
+
+// 紧凑 MD5（Paul Johnston 算法，公开领域，广泛验证）
+function md5(s) {
+  function add32(a,b){return(a+b)&0xFFFFFFFF;}
+  function cmn(q,a,b,x,s,t){a=add32(add32(a,q),add32(x,t));return add32((a<<s)|(a>>>(32-s)),b);}
+  function ff(a,b,c,d,x,s,t){return cmn((b&c)|(~b&d),a,b,x,s,t);}
+  function gg(a,b,c,d,x,s,t){return cmn((b&d)|(c&~d),a,b,x,s,t);}
+  function hh(a,b,c,d,x,s,t){return cmn(b^c^d,a,b,x,s,t);}
+  function ii(a,b,c,d,x,s,t){return cmn(c^(b|~d),a,b,x,s,t);}
+  function md5cycle(x,k){
+    let a=x[0],b=x[1],c=x[2],d=x[3];
+    a=ff(a,b,c,d,k[0],7,-680876936);d=ff(d,a,b,c,k[1],12,-389564586);c=ff(c,d,a,b,k[2],17,606105819);b=ff(b,c,d,a,k[3],22,-1044525330);
+    a=ff(a,b,c,d,k[4],7,-176418897);d=ff(d,a,b,c,k[5],12,1200080426);c=ff(c,d,a,b,k[6],17,-1473231341);b=ff(b,c,d,a,k[7],22,-45705983);
+    a=ff(a,b,c,d,k[8],7,1770035416);d=ff(d,a,b,c,k[9],12,-1958414417);c=ff(c,d,a,b,k[10],17,-42063);b=ff(b,c,d,a,k[11],22,-1990404162);
+    a=ff(a,b,c,d,k[12],7,1804603682);d=ff(d,a,b,c,k[13],12,-40341101);c=ff(c,d,a,b,k[14],17,-1502002290);b=ff(b,c,d,a,k[15],22,1236535329);
+    a=gg(a,b,c,d,k[1],5,-165796510);d=gg(d,a,b,c,k[6],9,-1069501632);c=gg(c,d,a,b,k[11],14,643717713);b=gg(b,c,d,a,k[0],20,-373897302);
+    a=gg(a,b,c,d,k[5],5,-701558691);d=gg(d,a,b,c,k[10],9,38016083);c=gg(c,d,a,b,k[15],14,-660478335);b=gg(b,c,d,a,k[4],20,-405537848);
+    a=gg(a,b,c,d,k[9],5,568446438);d=gg(d,a,b,c,k[14],9,-1019803690);c=gg(c,d,a,b,k[3],14,-187363961);b=gg(b,c,d,a,k[8],20,1163531501);
+    a=gg(a,b,c,d,k[13],5,-1444681467);d=gg(d,a,b,c,k[2],9,-51403784);c=gg(c,d,a,b,k[7],14,1735328473);b=gg(b,c,d,a,k[12],20,-1926607734);
+    a=hh(a,b,c,d,k[5],4,-378558);d=hh(d,a,b,c,k[8],11,-2022574463);c=hh(c,d,a,b,k[11],16,1839030562);b=hh(b,c,d,a,k[14],23,-35309556);
+    a=hh(a,b,c,d,k[1],4,-1530992060);d=hh(d,a,b,c,k[4],11,1272893353);c=hh(c,d,a,b,k[7],16,-155497632);b=hh(b,c,d,a,k[10],23,-1094730640);
+    a=hh(a,b,c,d,k[13],4,681279174);d=hh(d,a,b,c,k[0],11,-358537222);c=hh(c,d,a,b,k[3],16,-722521979);b=hh(b,c,d,a,k[6],23,76029189);
+    a=hh(a,b,c,d,k[9],4,-640364487);d=hh(d,a,b,c,k[12],11,-421815835);c=hh(c,d,a,b,k[15],16,530742520);b=hh(b,c,d,a,k[2],23,-995338651);
+    a=ii(a,b,c,d,k[0],6,-198630844);d=ii(d,a,b,c,k[7],10,1126891415);c=ii(c,d,a,b,k[14],15,-1416354905);b=ii(b,c,d,a,k[5],21,-57434055);
+    a=ii(a,b,c,d,k[12],6,1700485571);d=ii(d,a,b,c,k[3],10,-1894986606);c=ii(c,d,a,b,k[10],15,-1051523);b=ii(b,c,d,a,k[1],21,-2054922799);
+    a=ii(a,b,c,d,k[8],6,1873313359);d=ii(d,a,b,c,k[15],10,-30611744);c=ii(c,d,a,b,k[6],15,-1560198380);b=ii(b,c,d,a,k[13],21,1309151649);
+    a=ii(a,b,c,d,k[4],6,-145523070);d=ii(d,a,b,c,k[11],10,-1120210379);c=ii(c,d,a,b,k[2],15,718787259);b=ii(b,c,d,a,k[9],21,-343485551);
+    x[0]=add32(a,x[0]);x[1]=add32(b,x[1]);x[2]=add32(c,x[2]);x[3]=add32(d,x[3]);
+  }
+  const hex='0123456789abcdef';
+  let str=unescape(encodeURIComponent(s)), n=str.length, state=[1732584193,-271733879,-1732584194,271733878], i, j;
+  // 将字节数组转为 32 位字数组（小端序），供 md5cycle 处理
+  function bytesToWords(bytes) {
+    const w = Array.from({length: 16}, (_, i) =>
+      (bytes[i*4]|(bytes[i*4+1]<<8)|(bytes[i*4+2]<<16)|(bytes[i*4+3]<<24))
+    );
+    return w;
+  }
+  let words;
+  for(i=64;i<=str.length;i+=64){
+    const bytes = [];
+    for(j=0;j<64;j++) bytes[j]=str.charCodeAt(i-64+j);
+    words = bytesToWords(bytes);
+    md5cycle(state, words);
+  }
+  let tail=[];
+  for(j=i-64;j<str.length;j++) tail.push(str.charCodeAt(j));
+  tail.push(128);
+  while(tail.length%64!==56) tail.push(0);
+  let bits=n*8;
+  tail.push(bits&0xFF); tail.push((bits>>8)&0xFF); tail.push((bits>>16)&0xFF); tail.push((bits>>24)&0xFF);
+  tail.push(0);tail.push(0);tail.push(0);tail.push(0); // 高32位（对于 <512GB 的输入恒为0）
+  for(i=0;i<tail.length;i+=64){
+    words = bytesToWords(tail.slice(i,i+64));
+    md5cycle(state, words);
+  }
+  let res='';
+  for(i=0;i<4;i++)res+=hex[(state[i]>>4)&0xF]+hex[state[i]&0xF]+hex[(state[i]>>12)&0xF]+hex[(state[i]>>8)&0xF]+hex[(state[i]>>20)&0xF]+hex[(state[i]>>16)&0xF]+hex[(state[i]>>28)&0xF]+hex[(state[i]>>24)&0xF];
+  return res;
+}
+
+// MD5 自测（打开控制台看结果）
+console.log('MD5 自测 "abc":', md5('abc'), '(期望: 900150983cd24fb0d6963f7d28e17f72)');
+console.log('MD5 自测 "":', md5(''), '(期望: d41d8cd98f00b204e9800998ecf8427e)');
+
+// JSONP 请求（绕过 CORS 限制，用于百度翻译）
+function jsonp(url) {
+  return new Promise((resolve, reject) => {
+    const cbName = 'bd_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    window[cbName] = (data) => { delete window[cbName]; script.remove(); resolve(data); };
+    script.src = url + '&callback=' + cbName;
+    script.onerror = () => { delete window[cbName]; script.remove(); reject(new Error('JSONP 请求失败')); };
+    document.head.appendChild(script);
+  });
+}
+
+// 翻译：只影响画布！自动翻译缺失的英文
+let _translating = false;
+async function autoTranslateAll(untranslated) {
+  if (untranslated.length === 0) return;
+  const texts = untranslated.map(t => t.cn);
+  const q = texts.join('\n');
+  const salt = Date.now();
+  const sign = md5(BAIDU_CONFIG.appid + q + salt + BAIDU_CONFIG.key);
+  console.log('百度翻译 sign 原文:', BAIDU_CONFIG.appid + q + salt + '(密钥隐藏)');
+  console.log('百度翻译 sign:', sign);
+  console.log('百度翻译 URL q 参数:', encodeURIComponent(q).slice(0,80) + '...');
+  const url = `https://fanyi-api.baidu.com/api/trans/vip/translate?q=${encodeURIComponent(q)}&from=zh&to=en&appid=${BAIDU_CONFIG.appid}&salt=${salt}&sign=${sign}`;
+  try {
+    const data = await jsonp(url);
+    if (data.trans_result) {
+      data.trans_result.forEach((r, i) => {
+        if (r.dst && untranslated[i]) {
+          untranslated[i].en = r.dst;
+          // 同步写回词库（匹配中文相同的标签）
+          const libTag = tags.find(t => t.cn === untranslated[i].cn);
+          if (libTag) libTag.en = r.dst;
+        }
+      });
+      saveCanvas();
+      Storage.set("tags", tags);
+    } else if (data.error_code) {
+      alert(`百度翻译失败 [${data.error_code}]: ${data.error_msg || '未知错误'}`);
+    }
+  } catch(e) {
+    alert('翻译请求失败，请检查网络: ' + e.message);
+  }
+}
+
+async function translateToggle() {
   showEn = !showEn;
-  renderCanvas(); // ← 只渲染画布，不碰词库
+  renderCanvas();
+
+  // 切换到英文时，批量自动翻译缺失的标签
+  if (showEn && !_translating) {
+    const untranslated = canvasTags.filter(t => !t.en);
+    if (untranslated.length > 0) {
+      _translating = true;
+      await autoTranslateAll(untranslated);
+      renderCanvas();
+      _translating = false;
+    }
+  }
 }
 
 function copyCanvas() {
@@ -824,7 +1146,7 @@ function confirmTag() {
 }
 function openAddCategory() {
   const name = prompt("分类名称:"); if (!name) return;
-  const icon = prompt("图标 emoji:") || "📁";
+  const icon = prompt("图标（粘贴图标编号或 emoji，默认📁）:") || "📁";
   categories.push({ id: nextId++, name, icon });
   Storage.set("categories", categories); renderTabs();
 }
@@ -868,7 +1190,7 @@ function doParse() {
       if (card.classList.contains("selected")) {
         const sel = document.createElement("select");
         sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:4px 8px;font-size:12px;width:100%;";
-        sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon}${c.name}</option>`).join("");
+        sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
         sel.onchange = () => {
           tags.push({ id: nextId++, categoryId: +sel.value, cn: card.dataset.text });
           Storage.set("tags", tags);
@@ -1016,7 +1338,7 @@ async function doAIParse() {
         if (card.classList.contains("selected")) {
           const sel = document.createElement("select");
           sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:4px 8px;font-size:12px;width:100%;";
-          sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon}${c.name}</option>`).join("");
+          sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
           sel.onchange = () => {
             tags.push({ id: nextId++, categoryId: +sel.value, cn: card.dataset.text });
             Storage.set("tags", tags);
@@ -1236,29 +1558,45 @@ function bindEvents() {
     if (tab) { currentCatId = +tab.dataset.id; renderTabs(); renderLibrary(); }
   };
 
-  // 分类编辑模式切换
+  // 分类编辑模式切换（只切换 CSS 类，不重建 DOM，避免闪烁）
+  $("#btn-edit-cats").innerHTML = iconSvg('✏️');
   $("#btn-edit-cats").onclick = () => {
     catEditMode = !catEditMode;
     $("#btn-edit-cats").classList.toggle("active", catEditMode);
-    $("#btn-edit-cats").textContent = catEditMode ? "✕" : "✏️";
-    renderTabs();
+    $("#btn-edit-cats").innerHTML = catEditMode ? iconSvg('✕') : iconSvg('✏️');
+    document.querySelector('.category-tabs-bar').classList.toggle("cat-edit-mode", catEditMode);
+    document.getElementById('btn-add-cat').classList.toggle('hidden', !catEditMode);
   };
 
   // 词库编辑模式切换
+  $("#btn-edit-lib").innerHTML = iconSvg('✏️');
   $("#btn-edit-lib").onclick = () => {
     libEditMode = !libEditMode;
     $("#btn-edit-lib").classList.toggle("active", libEditMode);
-    $("#btn-edit-lib").textContent = libEditMode ? "✕" : "✏️";
+    $("#btn-edit-lib").innerHTML = libEditMode ? iconSvg('✕') : iconSvg('✏️');
     renderLibrary();
   };
 
   $("#search-input").oninput = renderLibrary;
   $("#btn-add-tag").onclick = () => openTagModal();
+  // 添加按钮：将输入框文字变为标签
+  $("#btn-add-to-canvas").onclick = () => {
+    const text = $("#input-field").value.trim();
+    if (text) { canvasTags.push({ cn: text }); saveCanvas(); renderCanvas(); $("#input-field").value = ""; }
+  };
 
   // 工具栏（在画布内右下角）
   $("#btn-translate").onclick = translateToggle;
   $("#btn-copy").onclick = copyCanvas;
-  $("#btn-clear").onclick = () => { if (confirm("确定清空画布吗？")) { canvasTags = []; saveCanvas(); renderCanvas(); } };
+  $("#btn-clear").onclick = () => {
+    if (canvasTags.length === 0) return;
+    openConfirm("确定清空画布吗？", () => {
+      const backup = canvasTags.map(t => ({ ...t }));
+      canvasTags = []; saveCanvas(); renderCanvas();
+      pushUndo({ type: 'canvas-clear', data: backup });
+      showUndoToast("已清空画布");
+    });
+  };
 
   // 双空格变标签
   let lastSpaceTime = 0;
