@@ -388,7 +388,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .tag-card:hover { border-color: var(--accent); }
 .tag-card .cn { font-size: 14px; font-weight: 600; line-height: 1.4; }
-.tag-card .en { font-size: 11px; color: var(--text3); font-weight: 400; margin-left: 4px; }
+.tag-card .en { display: none; }
 
 /* 收藏呼吸圆点 */
 .tag-card .fav-dot {
