@@ -591,6 +591,14 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   display: flex; align-items: center; justify-content: center; z-index: 100;
   backdrop-filter: blur(2px);
 }
+
+#modal-confirm {
+  z-index: 101;
+}
+#modal-api-edit {
+  z-index: 101;
+}
+
 .modal-content {
   background: var(--bg2); border-radius: 14px; padding: 22px;
   width: 90%; max-width: 380px; display: flex; flex-direction: column;
