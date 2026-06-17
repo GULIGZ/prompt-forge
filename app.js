@@ -1744,8 +1744,8 @@ function bindEvents() {
       el.innerHTML = `<div class="api-empty">暂无 API 配置，点击上方「添加 API」按钮</div>`;
       return;
     }
-    const toggleOn = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="17" cy="12" r="3" fill="var(--accent)"/></svg>';
-    const toggleOff = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="var(--text3)" stroke-width="2" opacity="0.5"/><circle cx="8" cy="12" r="3" fill="var(--text3)" opacity="0.5"/></svg>';
+    const toggleOn = '<svg width="15" height="15" viewBox="0 0 48 48" fill="none"><path d="M14.5 8C13.8406 8.37652 13.2062 8.79103 12.6 9.24051C11.5625 10.0097 10.6074 10.8814 9.75 11.8402C6.79377 15.1463 5 19.4891 5 24.2455C5 34.6033 13.5066 43 24 43C34.4934 43 43 34.6033 43 24.2455C43 19.4891 41.2062 15.1463 38.25 11.8402C37.3926 10.8814 36.4375 10.0097 35.4 9.24051C34.7938 8.79103 34.1594 8.37652 33.5 8" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 4V24" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const toggleOff = '<svg width="15" height="15" viewBox="0 0 48 48" fill="none"><path d="M14.5 8C13.8406 8.37652 13.2062 8.79103 12.6 9.24051C11.5625 10.0097 10.6074 10.8814 9.75 11.8402C6.79377 15.1463 5 19.4891 5 24.2455C5 34.6033 13.5066 43 24 43C34.4934 43 43 34.6033 43 24.2455C43 19.4891 41.2062 15.1463 38.25 11.8402C37.3926 10.8814 36.4375 10.0097 35.4 9.24051C34.7938 8.79103 34.1594 8.37652 33.5 8" stroke="var(--text3)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 4V24" stroke="var(--text3)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     el.innerHTML = apiConfigs.map(cfg => {
       const isActive = cfg.id === activeApiId;
       const prov = API_PROVIDERS[cfg.provider] || API_PROVIDERS.openai;
