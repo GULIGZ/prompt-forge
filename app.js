@@ -1732,7 +1732,8 @@ function bindEvents() {
   $$(".modal .btn-cancel").forEach(b => b.onclick = closeModals);
   $$(".modal").forEach(m => m.onclick = (e) => { if (e.target === m) closeModals(); });
   $("#modal-tag .btn-confirm").onclick = confirmTag;
-  $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); closeModals(); };
+  $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal-confirm").classList.add("hidden"); };
+  $("#modal-confirm .btn-cancel").onclick = () => { $("#modal-confirm").classList.add("hidden"); };
 
   // ========== 设置面板（多 API 配置 + 标签页）==========
   let _editingApiId = null;
