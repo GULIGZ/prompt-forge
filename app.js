@@ -1746,22 +1746,50 @@ function bindEvents() {
     }
     const toggleOn = '<svg width="15" height="15" viewBox="0 0 48 48" fill="none"><path d="M14.5 8C13.8406 8.37652 13.2062 8.79103 12.6 9.24051C11.5625 10.0097 10.6074 10.8814 9.75 11.8402C6.79377 15.1463 5 19.4891 5 24.2455C5 34.6033 13.5066 43 24 43C34.4934 43 43 34.6033 43 24.2455C43 19.4891 41.2062 15.1463 38.25 11.8402C37.3926 10.8814 36.4375 10.0097 35.4 9.24051C34.7938 8.79103 34.1594 8.37652 33.5 8" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 4V24" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const toggleOff = '<svg width="15" height="15" viewBox="0 0 48 48" fill="none"><path d="M14.5 8C13.8406 8.37652 13.2062 8.79103 12.6 9.24051C11.5625 10.0097 10.6074 10.8814 9.75 11.8402C6.79377 15.1463 5 19.4891 5 24.2455C5 34.6033 13.5066 43 24 43C34.4934 43 43 34.6033 43 24.2455C43 19.4891 41.2062 15.1463 38.25 11.8402C37.3926 10.8814 36.4375 10.0097 35.4 9.24051C34.7938 8.79103 34.1594 8.37652 33.5 8" stroke="var(--text3)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 4V24" stroke="var(--text3)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    // 用内联 onclick，确保每个按钮独立可点击
     el.innerHTML = apiConfigs.map(cfg => {
       const isActive = cfg.id === activeApiId;
       const prov = API_PROVIDERS[cfg.provider] || API_PROVIDERS.openai;
+      const id = JSON.stringify(cfg.id); // 转义防 XSS
       return `<div class="api-item ${isActive ? 'active' : ''}" data-id="${cfg.id}">
         <div class="api-item-info">
           <span class="api-item-name">${cfg.name || prov.name}</span>
           <span class="api-item-detail">${prov.name} · ${cfg.model}</span>
         </div>
         <div class="api-item-actions">
-          <button class="api-btn-toggle" data-id="${cfg.id}" title="${isActive ? '正在使用' : '设为默认'}">${isActive ? toggleOn : toggleOff}</button>
-          <button class="api-btn-edit" data-id="${cfg.id}" title="编辑">${iconSvg('✏️')}</button>
-          <button class="api-btn-del" data-id="${cfg.id}" title="删除">${iconSvg('🗑️')}</button>
+          <button class="api-btn-toggle" onclick="__apiToggle(${id})" title="${isActive ? '正在使用' : '设为默认'}">${isActive ? toggleOn : toggleOff}</button>
+          <button class="api-btn-edit" onclick="__apiEdit(${id})" title="编辑">${iconSvg('✏️')}</button>
+          <button class="api-btn-del" onclick="__apiDel(${id})" title="删除">${iconSvg('🗑️')}</button>
         </div>
       </div>`;
     }).join("");
   }
+
+  // 挂载到 window 上供内联 onclick 调用
+  window.__apiToggle = function(id) {
+    if (id !== activeApiId) {
+      activeApiId = id;
+      Storage.set("activeApiId", activeApiId);
+      renderSettingsApiList();
+    }
+  };
+  window.__apiEdit = function(id) { openApiEdit(id); };
+  window.__apiDel = function(id) {
+    if (apiConfigs.length <= 1) {
+      alert("至少保留一个 API 配置，如需删除请先添加新配置");
+      return;
+    }
+    const cfg = apiConfigs.find(c => c.id === id);
+    openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
+      apiConfigs = apiConfigs.filter(c => c.id !== id);
+      Storage.set("apiConfigs", apiConfigs);
+      if (activeApiId === id) {
+        activeApiId = apiConfigs[0]?.id || null;
+        Storage.set("activeApiId", activeApiId);
+      }
+      renderSettingsApiList();
+    });
+  };
 
   function openApiEdit(id) {
     _editingApiId = id || null;
@@ -1869,49 +1897,6 @@ function bindEvents() {
   $("#btn-add-api").onclick = () => openApiEdit();
   $("#btn-save-api").onclick = saveApiEdit;
   $("#btn-cancel-api").onclick = () => $("#modal-api-edit").classList.add("hidden");
-
-  // API 列表按钮：用 document 级事件委托，确保任何渲染方式都能捕获点击
-  document.addEventListener('click', (e) => {
-    // 只在设置弹窗打开时才处理
-    if ($("#modal-settings").classList.contains("hidden")) return;
-
-    const delBtn = e.target.closest('.api-btn-del');
-    if (delBtn) {
-      const id = delBtn.dataset.id;
-      if (apiConfigs.length <= 1) {
-        alert("至少保留一个 API 配置，如需删除请先添加新配置");
-        return;
-      }
-      const cfg = apiConfigs.find(c => c.id === id);
-      openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
-        apiConfigs = apiConfigs.filter(c => c.id !== id);
-        Storage.set("apiConfigs", apiConfigs);
-        if (activeApiId === id) {
-          activeApiId = apiConfigs[0]?.id || null;
-          Storage.set("activeApiId", activeApiId);
-        }
-        renderSettingsApiList();
-      });
-      return;
-    }
-
-    const editBtn = e.target.closest('.api-btn-edit');
-    if (editBtn) {
-      openApiEdit(editBtn.dataset.id);
-      return;
-    }
-
-    const toggleBtn = e.target.closest('.api-btn-toggle');
-    if (toggleBtn) {
-      const id = toggleBtn.dataset.id;
-      if (id && id !== activeApiId) {
-        activeApiId = id;
-        Storage.set("activeApiId", activeApiId);
-        renderSettingsApiList();
-      }
-      return;
-    }
-  });
 
   $("#btn-export").onclick = exportData;
   $("#btn-import").onclick = () => $("#import-file").click();
