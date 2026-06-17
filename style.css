@@ -349,14 +349,33 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .library-toolbar {
   display: flex; gap: 8px; margin-bottom: 14px; flex-shrink: 0;
 }
-.library-toolbar input {
+.search-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+.search-wrap input {
   flex: 1; background: var(--bg2); border: 1px solid var(--border);
   border-radius: 9px; color: var(--text); padding: 8px 12px; font-size: 13px; font-family: inherit;
   transition: border-color 0.2s;
+  padding-right: 30px;
 }
-.library-toolbar input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(4,208,90,0.1); }
-.library-toolbar input::placeholder { color: var(--text3); }
-.library-toolbar button {
+.search-wrap input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(4,208,90,0.1); }
+.search-wrap input::placeholder { color: var(--text3); }
+.btn-search-clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--text3); cursor: pointer;
+  width: 20px; height: 20px; border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; transition: color 0.15s, background 0.15s;
+}
+.btn-search-clear:hover { background: var(--border); color: var(--text); }
+.btn-search-clear svg { width: 15px; height: 15px; }
+#btn-search-clear svg { color: var(--accent); }
+/* 清空按钮不受 .library-toolbar button 影响 */
+.library-toolbar > button:not(.btn-search-clear) {
   background: var(--accent); border: none; color: #fff;
   padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
   font-weight: 600; white-space: nowrap; line-height: 1.4;
@@ -388,9 +407,12 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .tag-card:hover { border-color: var(--accent); }
 .tag-card .cn { font-size: 14px; font-weight: 600; line-height: 1.4; }
-.tag-card .en { display: none; }
 
 /* 收藏呼吸圆点 */
+.tag-card .cat-label .icon-svg {
+  width: 11px;
+  height: 11px;
+}
 .tag-card .fav-dot {
   width: 6px; height: 6px; border-radius: 50%;
   background: var(--orange); display: inline-block; flex-shrink: 0;

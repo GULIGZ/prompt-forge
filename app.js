@@ -45,7 +45,7 @@ const ICON_SVG = {
   '✨': _S('M12 3l1.5 5.5L19 10l-5.5 1.5L12 17l-1.5-5.5L5 10l5.5-1.5L12 3zM18 13l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3z'),
   '🏷️': _S('M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01'),
   '✏️': _S('M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z'),
-  '🗑️': _S('M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6'),
+  '🗑️': _S('M4 4L20 20M4 20L20 4'),
   '✕': _S('M18 6L6 18M6 6l12 12'),
   '🔍': _S('M10 2a8 8 0 107.29 11.71L22 18.59 18.59 22l-4.88-4.71A8 8 0 0010 2z'),
   '⚙️': _S('M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z'),
@@ -571,7 +571,7 @@ function renderLibrary() {
   let list;
   if (kw) {
     // 全局搜索：跨所有分类
-    list = tags.filter(t => t.cn.includes(kw));
+    list = tags.filter(t => fuzzyMatch(t.cn, kw));
     const el = $("#tag-grid");
     el.classList.toggle("lib-edit-mode", libEditMode);
     if (list.length === 0) {
@@ -582,10 +582,9 @@ function renderLibrary() {
       const cat = categories.find(c => c.id === t.categoryId);
       return `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
         <span class="fav-dot"></span>
-        <span class="cn">${t.cn}</span>
-        ${t.en ? `<span class="en">${t.en}</span>` : ''}
-        ${cat && cat.id !== FAV_CAT_ID ? `<span class="cat-label">${iconSvg(cat.icon)} ${cat.name}</span>` : ''}
-        <div class="actions">
+       <span class="cn">${t.cn}</span>
+        ${cat && cat.id !== FAV_CAT_ID ? `<span class="cat-label">${renderIcon(cat.icon)} ${cat.name}</span>` : ''}
+       <div class="actions">
           <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
           <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
           <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
@@ -596,9 +595,9 @@ function renderLibrary() {
   }
 
   if (currentCatId === FAV_CAT_ID) {
-    list = tags.filter(t => t.favorited && (!kw || t.cn.includes(kw)));
+    list = tags.filter(t => t.favorited && (!kw || fuzzyMatch(t.cn, kw)));
   } else {
-    list = tags.filter(t => t.categoryId === currentCatId && (!kw || t.cn.includes(kw)));
+    list = tags.filter(t => t.categoryId === currentCatId && (!kw || fuzzyMatch(t.cn, kw)));
   }
   const el = $("#tag-grid");
   el.classList.toggle("lib-edit-mode", libEditMode);
@@ -609,9 +608,8 @@ function renderLibrary() {
   el.innerHTML = list.map((t, i) =>
     `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
       <span class="fav-dot"></span>
-      <span class="cn">${t.cn}</span>
-      ${t.en ? `<span class="en">${t.en}</span>` : ''}
-      <div class="actions">
+     <span class="cn">${t.cn}</span>
+     <div class="actions">
         <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
         <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
         <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
@@ -838,9 +836,9 @@ function initLibDragListeners() {
           const kw = $("#search-input").value.trim().toLowerCase();
           let viewList;
           if (currentCatId === FAV_CAT_ID) {
-            viewList = tags.filter(t => t.favorited && (!kw || t.cn.includes(kw)));
+            viewList = tags.filter(t => t.favorited && (!kw || fuzzyMatch(t.cn, kw)));
           } else {
-            viewList = tags.filter(t => t.categoryId === currentCatId && (!kw || t.cn.includes(kw)));
+            viewList = tags.filter(t => t.categoryId === currentCatId && (!kw || fuzzyMatch(t.cn, kw)));
           }
           let dstIdx = insertIdx;
           let srcIdx = idx;
@@ -1223,7 +1221,13 @@ function copyCanvas() {
 }
 
 let confirmDeleteFn = null;
-function openConfirm(msg, fn) { $("#confirm-msg").textContent = msg; confirmDeleteFn = fn; $("#modal-confirm").classList.remove("hidden"); }
+let _confirmFromSettings = false;
+function openConfirm(msg, fn) {
+  $("#confirm-msg").textContent = msg; confirmDeleteFn = fn;
+  _confirmFromSettings = !$("#modal-settings").classList.contains("hidden");
+  if (_confirmFromSettings) $("#modal-settings").classList.add("hidden");
+  $("#modal-confirm").classList.remove("hidden");
+}
 function closeModals() { $$('.modal').forEach(m => m.classList.add("hidden")); }
 
 let editingTagId = null;
@@ -1659,6 +1663,17 @@ function importCSV(f) {
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
 
+// 模糊搜索：先精确子串匹配，再逐字符模糊匹配
+function fuzzyMatch(text, query) {
+  const t = text.toLowerCase();
+  const q = query.toLowerCase().trim();
+  if (!q) return true;
+  if (t.includes(q)) return true;
+  // 逐字符匹配：查询串的每个字符必须在目标文本中出现
+  const qChars = [...new Set(q)];
+  return qChars.every(c => t.includes(c));
+}
+
 // ========== 事件绑定入口 ==========
 function bindEvents() {
   $("#btn-paint").onclick = () => switchMode("paint");
@@ -1693,7 +1708,15 @@ function bindEvents() {
     renderLibrary();
   };
 
-  $("#search-input").oninput = renderLibrary;
+  $("#search-input").oninput = () => {
+    renderLibrary();
+    $("#btn-search-clear").classList.toggle("hidden", !$("#search-input").value.trim());
+  };
+  $("#btn-search-clear").onclick = () => {
+    $("#search-input").value = "";
+    $("#btn-search-clear").classList.add("hidden");
+    renderLibrary();
+  };
   $("#btn-add-tag").onclick = () => openTagModal();
   // 添加按钮：将输入框文字变为标签
   $("#btn-add-to-canvas").onclick = () => {
@@ -1732,7 +1755,7 @@ function bindEvents() {
   $$(".modal .btn-cancel").forEach(b => b.onclick = closeModals);
   $$(".modal").forEach(m => m.onclick = (e) => { if (e.target === m) closeModals(); });
   $("#modal-tag .btn-confirm").onclick = confirmTag;
-  $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal-confirm").classList.add("hidden"); if ($("#modal-settings").classList.contains("hidden")) $("#modal-settings").classList.remove("hidden"); };
+$("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal-confirm").classList.add("hidden"); if (_confirmFromSettings) $("#modal-settings").classList.remove("hidden"); };
   $("#modal-confirm .btn-cancel").onclick = () => { $("#modal-confirm").classList.add("hidden"); };
 
   // ========== 设置面板（多 API 配置 + 标签页）==========
