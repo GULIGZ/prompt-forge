@@ -1762,39 +1762,51 @@ function bindEvents() {
       </div>`;
     }).join("");
 
-    // 切换默认
-    $$('.api-btn-toggle').forEach(b => b.onclick = (e) => {
-      e.stopPropagation();
-      const id = b.dataset.id;
-      if (id === activeApiId) return; // 已经是默认，不需要切换
-      activeApiId = id;
-      Storage.set("activeApiId", activeApiId);
-      renderSettingsApiList();
-    });
-    // 编辑
-    $$('.api-btn-edit').forEach(b => b.onclick = (e) => {
-      e.stopPropagation();
-      openApiEdit(b.dataset.id);
-    });
-    // 删除
-    $$('.api-btn-del').forEach(b => b.onclick = (e) => {
-      e.stopPropagation();
-      const id = b.dataset.id;
-      if (apiConfigs.length <= 1) {
-        alert("至少保留一个 API 配置，如需删除请先添加新配置");
-        return;
-      }
-      const cfg = apiConfigs.find(c => c.id === id);
-      openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
-        apiConfigs = apiConfigs.filter(c => c.id !== id);
-        Storage.set("apiConfigs", apiConfigs);
-        if (activeApiId === id) {
-          activeApiId = apiConfigs[0]?.id || null;
-          Storage.set("activeApiId", activeApiId);
+    // 使用事件委托，避免每项单独绑定 onclick
+    if (!el._delegated) {
+      el._delegated = true;
+      el.addEventListener('click', (e) => {
+        const delBtn = e.target.closest('.api-btn-del');
+        if (delBtn) {
+          e.stopPropagation();
+          const id = delBtn.dataset.id;
+          if (apiConfigs.length <= 1) {
+            alert("至少保留一个 API 配置，如需删除请先添加新配置");
+            return;
+          }
+          const cfg = apiConfigs.find(c => c.id === id);
+          openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
+            apiConfigs = apiConfigs.filter(c => c.id !== id);
+            Storage.set("apiConfigs", apiConfigs);
+            if (activeApiId === id) {
+              activeApiId = apiConfigs[0]?.id || null;
+              Storage.set("activeApiId", activeApiId);
+            }
+            renderSettingsApiList();
+          });
+          return;
         }
-        renderSettingsApiList();
+
+        const editBtn = e.target.closest('.api-btn-edit');
+        if (editBtn) {
+          e.stopPropagation();
+          openApiEdit(editBtn.dataset.id);
+          return;
+        }
+
+        const toggleBtn = e.target.closest('.api-btn-toggle');
+        if (toggleBtn) {
+          e.stopPropagation();
+          const id = toggleBtn.dataset.id;
+          if (id && id !== activeApiId) {
+            activeApiId = id;
+            Storage.set("activeApiId", activeApiId);
+            renderSettingsApiList();
+          }
+          return;
+        }
       });
-    });
+    }
   }
 
   function openApiEdit(id) {
