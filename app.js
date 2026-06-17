@@ -77,8 +77,18 @@ let libEditMode = false;
 
 // API 配置
 const API_PROVIDERS = {
-  openai: { baseURL: "https://api.openai.com/v1", supportsVision: true, name: "OpenAI" },
-  xiaomi: { baseURL: "https://api.xiaomimimo.com/v1", supportsVision: true, name: "小米 MiMo" },
+  openai: { baseURL: "https://api.openai.com/v1", supportsVision: true, name: "OpenAI", authType: "bearer" },
+  xiaomi: { baseURL: "https://api.xiaomimimo.com/v1", supportsVision: true, name: "小米 MiMo", authType: "bearer" },
+  deepseek: { baseURL: "https://api.deepseek.com", supportsVision: false, name: "DeepSeek", authType: "bearer" },
+  moonshot: { baseURL: "https://api.moonshot.cn/v1", supportsVision: true, name: "Moonshot (Kimi)", authType: "bearer" },
+  zhipu: { baseURL: "https://open.bigmodel.cn/api/paas/v4", supportsVision: true, name: "智谱 AI", authType: "bearer" },
+  siliconflow: { baseURL: "https://api.siliconflow.cn/v1", supportsVision: true, name: "硅基流动", authType: "bearer" },
+  alibaba: { baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1", supportsVision: true, name: "阿里云百炼", authType: "bearer" },
+  anthropic: { baseURL: "https://api.anthropic.com/v1", supportsVision: true, name: "Anthropic", authType: "bearer", header: "x-api-key" },
+  openrouter: { baseURL: "https://openrouter.ai/api/v1", supportsVision: true, name: "OpenRouter", authType: "bearer" },
+  together: { baseURL: "https://api.together.xyz/v1", supportsVision: true, name: "Together AI", authType: "bearer" },
+  groq: { baseURL: "https://api.groq.com/openai/v1", supportsVision: true, name: "Groq", authType: "bearer" },
+  custom: { baseURL: "", supportsVision: false, name: "自定义", authType: "bearer" },
 };
 const PROVIDER_MODELS = {
   openai: [
@@ -88,9 +98,104 @@ const PROVIDER_MODELS = {
   xiaomi: [
     { value: "mimo-v2.5", label: "mimo-v2.5" },
   ],
+  deepseek: [
+    { value: "deepseek-chat", label: "DeepSeek-V3" },
+    { value: "deepseek-reasoner", label: "DeepSeek-R1" },
+  ],
+  moonshot: [
+    { value: "moonshot-v1-8k", label: "moonshot-v1-8k" },
+    { value: "moonshot-v1-32k", label: "moonshot-v1-32k" },
+    { value: "moonshot-v1-128k", label: "moonshot-v1-128k" },
+  ],
+  zhipu: [
+    { value: "glm-4-flash", label: "GLM-4-Flash" },
+    { value: "glm-4-plus", label: "GLM-4-Plus" },
+    { value: "glm-4v-plus", label: "GLM-4V-Plus" },
+  ],
+  siliconflow: [
+    { value: "deepseek-ai/DeepSeek-V3", label: "DeepSeek-V3" },
+    { value: "Qwen/Qwen2.5-72B-Instruct", label: "Qwen2.5-72B" },
+    { value: "meta-llama/Llama-3.3-70B-Instruct", label: "Llama-3.3-70B" },
+  ],
+  alibaba: [
+    { value: "qwen-max", label: "qwen-max" },
+    { value: "qwen-plus", label: "qwen-plus" },
+    { value: "qwen-vl-max", label: "qwen-vl-max" },
+  ],
+  anthropic: [
+    { value: "claude-sonnet-4-20250514", label: "Claude Sonnet 4" },
+    { value: "claude-opus-4-20250514", label: "Claude Opus 4" },
+    { value: "claude-haiku-4-20250514", label: "Claude Haiku 4" },
+  ],
+  openrouter: [
+    { value: "openai/gpt-4o", label: "GPT-4o" },
+    { value: "anthropic/claude-sonnet-4", label: "Claude Sonnet 4" },
+    { value: "deepseek/deepseek-chat", label: "DeepSeek-V3" },
+  ],
+  together: [
+    { value: "meta-llama/Llama-3.3-70B-Instruct-Turbo", label: "Llama-3.3-70B" },
+    { value: "deepseek-ai/DeepSeek-V3", label: "DeepSeek-V3" },
+  ],
+  groq: [
+    { value: "llama-3.3-70b-versatile", label: "Llama-3.3-70B" },
+    { value: "mixtral-8x7b-32768", label: "Mixtral-8x7B" },
+  ],
+  custom: [],
 };
-let apiConfig = Storage.get("apiConfig", { key: "", model: "gpt-4o-mini", provider: "openai" });
-if (!apiConfig.provider) apiConfig.provider = "openai";
+// 支持多 API 配置（向后兼容旧的单配置）
+let apiConfigs = Storage.get("apiConfigs", []);
+let activeApiId = Storage.get("activeApiId", null);
+
+// 向后兼容：旧版单 apiConfig 迁移到新版
+const _oldApi = Storage.get("apiConfig", null);
+if (_oldApi && _oldApi.key) {
+  const migrated = {
+    id: 'mig_' + Date.now(),
+    name: API_PROVIDERS[_oldApi.provider]?.name || _oldApi.provider,
+    provider: _oldApi.provider || "openai",
+    key: _oldApi.key,
+    model: _oldApi.model || "gpt-4o-mini",
+    baseURL: "",
+    customModels: "",
+  };
+  if (!apiConfigs.length) apiConfigs = [migrated];
+  else if (!apiConfigs.find(c => c.key === migrated.key)) apiConfigs.unshift(migrated);
+  Storage.set("apiConfigs", apiConfigs);
+  Storage.set("activeApiId", migrated.id);
+  activeApiId = migrated.id;
+  localStorage.removeItem("apiConfig"); // 清理旧数据
+}
+
+// 确保至少有一个默认空配置
+if (!apiConfigs.length) {
+  apiConfigs = [{
+    id: 'cfg_' + Date.now(),
+    name: "OpenAI",
+    provider: "openai",
+    key: "",
+    model: "gpt-4o-mini",
+    baseURL: "",
+    customModels: "",
+  }];
+  Storage.set("apiConfigs", apiConfigs);
+  activeApiId = apiConfigs[0].id;
+  Storage.set("activeApiId", activeApiId);
+}
+if (!activeApiId) { activeApiId = apiConfigs[0].id; Storage.set("activeApiId", activeApiId); }
+
+function getActiveConfig() {
+  return apiConfigs.find(c => c.id === activeApiId) || apiConfigs[0];
+}
+
+// 旧 apiConfig 变量兼容（只读，避免老代码报错）
+const apiConfig = new Proxy({}, {
+  get(_, key) { return getActiveConfig()?.[key]; },
+  set(_, key, value) {
+    const cfg = getActiveConfig();
+    if (cfg) { cfg[key] = value; Storage.set("apiConfigs", apiConfigs); }
+    return true;
+  }
+});
 
 // 三区拖拽共享状态结构：{ active, ghost, el, idx, insertIdx, startX, startY, origLeft, origTop, latestX, latestY }
 let _catDrag = { active: false, ghost: null, el: null, idx: null, insertIdx: null, startX: 0, startY: 0, origLeft: 0, origTop: 0, latestX: 0, latestY: 0 };
@@ -1236,25 +1341,35 @@ function csvParseLine(line) {
 
 // ========== OpenAI API 调用工具 ==========
 async function callOpenAI(messages, options = {}) {
-  const { model = apiConfig.model, onStream } = options;
-  if (!apiConfig.key) {
+  const { model: optModel, onStream } = options;
+  const cfg = getActiveConfig();
+  if (!cfg || !cfg.key) {
     alert("请先在设置中配置 API 密钥 🔑");
     return { content: "", error: "NO_KEY" };
   }
-  const provider = API_PROVIDERS[apiConfig.provider] || API_PROVIDERS.openai;
+  const providerKey = cfg.provider;
+  const provider = API_PROVIDERS[providerKey] || API_PROVIDERS.openai;
+  // 自定义 provider 用用户填写的 baseURL，预设用内置 baseURL
+  const baseURL = providerKey === "custom" ? (cfg.baseURL || "").replace(/\/$/, "") : (provider.baseURL || "").replace(/\/$/, "");
+  if (providerKey === "custom" && !baseURL) {
+    alert("自定义 API 未填写接口地址");
+    return { content: "", error: "NO_BASEURL" };
+  }
+  const model = optModel || cfg.model;
   try {
     const body = { model, messages, stream: !!onStream };
     if (!onStream) body.temperature = 0.3;
 
     const headers = { "Content-Type": "application/json" };
-    // 不同服务商认证方式不同：OpenAI 用 Bearer，小米用 api-key
-    if (apiConfig.provider === "xiaomi") {
-      headers["api-key"] = apiConfig.key;
-    } else {
-      headers["Authorization"] = `Bearer ${apiConfig.key}`;
+    const authType = provider.authType || "bearer";
+    const headerName = provider.header || "Authorization";
+    if (authType === "bearer") {
+      headers[headerName] = `Bearer ${cfg.key}`;
+    } else if (authType === "api-key") {
+      headers[headerName] = cfg.key;
     }
 
-    const res = await fetch(`${provider.baseURL}/chat/completions`, {
+    const res = await fetch(`${baseURL}/chat/completions`, {
       method: "POST",
       headers,
       body: JSON.stringify(body),
@@ -1618,43 +1733,169 @@ function bindEvents() {
   $("#modal-tag .btn-confirm").onclick = confirmTag;
   $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); closeModals(); };
 
-  // 设置
-  // 根据服务商更新模型下拉选项
-  function updateModelOptions(provider) {
-    const sel = $("#select-model");
-    const models = PROVIDER_MODELS[provider] || PROVIDER_MODELS.openai;
-    sel.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
-  }
-  $("#btn-settings").onclick = () => {
-    $("#input-api-key").value = apiConfig.key;
-    $("#select-provider").value = apiConfig.provider;
-    updateModelOptions(apiConfig.provider);
-    $("#select-model").value = apiConfig.model;
-    // 如果当前模型不在新选项里，选第一个
-    if (!$("#select-model").querySelector(`option[value="${apiConfig.model}"]`)) {
-      apiConfig.model = $("#select-model").value;
+  // ========== 设置面板（多 API 配置 + 标签页）==========
+  let _editingApiId = null;
+
+  function renderSettingsApiList() {
+    const el = $("#api-list");
+    if (!el) return;
+    if (!apiConfigs.length) {
+      el.innerHTML = `<div class="api-empty">暂无 API 配置，点击上方「添加 API」按钮</div>`;
+      return;
     }
-    $("#api-status").textContent = apiConfig.key ? "✔️" : "";
+    el.innerHTML = apiConfigs.map(cfg => {
+      const isActive = cfg.id === activeApiId;
+      const prov = API_PROVIDERS[cfg.provider] || API_PROVIDERS.openai;
+      return `<div class="api-item ${isActive ? 'active' : ''}" data-id="${cfg.id}">
+        <div class="api-item-info">
+          <span class="api-item-name">${cfg.name || prov.name}</span>
+          <span class="api-item-detail">${prov.name} · ${cfg.model}</span>
+        </div>
+        <div class="api-item-actions">
+          ${isActive ? '<span class="api-badge">默认</span>' : ''}
+          <button class="api-btn-setdef" data-id="${cfg.id}" title="设为默认">${iconSvg('⭐')}</button>
+          <button class="api-btn-edit" data-id="${cfg.id}" title="编辑">${iconSvg('✏️')}</button>
+          <button class="api-btn-del" data-id="${cfg.id}" title="删除">${iconSvg('🗑️')}</button>
+        </div>
+      </div>`;
+    }).join("");
+
+    // 设为默认
+    $$('.api-btn-setdef').forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      activeApiId = b.dataset.id;
+      Storage.set("activeApiId", activeApiId);
+      renderSettingsApiList();
+    });
+    // 编辑
+    $$('.api-btn-edit').forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      openApiEdit(b.dataset.id);
+    });
+    // 删除
+    $$('.api-btn-del').forEach(b => b.onclick = (e) => {
+      e.stopPropagation();
+      const id = b.dataset.id;
+      const cfg = apiConfigs.find(c => c.id === id);
+      openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
+        apiConfigs = apiConfigs.filter(c => c.id !== id);
+        Storage.set("apiConfigs", apiConfigs);
+        if (activeApiId === id) {
+          activeApiId = apiConfigs[0]?.id || null;
+          Storage.set("activeApiId", activeApiId);
+        }
+        renderSettingsApiList();
+      });
+    });
+  }
+
+  function openApiEdit(id) {
+    _editingApiId = id || null;
+    const cfg = id ? apiConfigs.find(c => c.id === id) : null;
+    $("#edit-api-title").textContent = id ? "编辑 API 配置" : "添加 API 配置";
+    $("#edit-api-name").value = cfg?.name || "";
+    $("#edit-api-provider").value = cfg?.provider || "openai";
+    $("#edit-api-key").value = cfg?.key || "";
+    $("#edit-api-model").value = cfg?.model || "";
+    $("#edit-api-baseurl").value = cfg?.baseURL || "";
+    $("#edit-api-custommodels").value = cfg?.customModels || "";
+    updateEditModelOptions(cfg?.provider || "openai", cfg?.model);
+    toggleCustomFields(cfg?.provider || "openai");
+    $("#modal-api-edit").classList.remove("hidden");
+  }
+
+  function updateEditModelOptions(provider, selectedModel) {
+    const sel = $("#edit-api-model");
+    let models = PROVIDER_MODELS[provider] || [];
+    // 如果有自定义模型，追加到列表
+    const cfg = apiConfigs.find(c => c.id === _editingApiId);
+    const customStr = cfg?.customModels || $("#edit-api-custommodels")?.value || "";
+    if (customStr.trim()) {
+      const customModels = customStr.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+      models = [...models, ...customModels.map(m => ({ value: m, label: m }))];
+    }
+    // 去重
+    const seen = new Set();
+    models = models.filter(m => { if (seen.has(m.value)) return false; seen.add(m.value); return true; });
+    sel.innerHTML = models.map(m => `<option value="${m.value}" ${m.value === selectedModel ? 'selected' : ''}>${m.label}</option>`).join("") +
+      (models.length ? '' : '<option value="">请选择或输入模型</option>');
+    // 如果没有匹配的选项，添加一个用户输入的占位
+    if (selectedModel && !models.find(m => m.value === selectedModel)) {
+      sel.innerHTML += `<option value="${selectedModel}" selected>${selectedModel}</option>`;
+    }
+  }
+
+  function toggleCustomFields(provider) {
+    const wrap = $("#edit-api-custom-wrap");
+    if (!wrap) return;
+    const isCustom = provider === "custom";
+    wrap.classList.toggle("hidden", !isCustom);
+    // 自定义模型输入框始终显示（用于补充预设列表）
+    $("#edit-api-custommodels-wrap").classList.remove("hidden");
+  }
+
+  function saveApiEdit() {
+    const name = $("#edit-api-name").value.trim();
+    const provider = $("#edit-api-provider").value;
+    const key = $("#edit-api-key").value.trim();
+    const model = $("#edit-api-model").value;
+    const baseURL = $("#edit-api-baseurl")?.value.trim() || "";
+    const customModels = $("#edit-api-custommodels")?.value.trim() || "";
+    if (!name) return alert("请填写配置名称");
+    if (!key) return alert("请填写 API 密钥");
+    if (!model && provider !== "custom") return alert("请选择或填写模型");
+    if (provider === "custom" && !baseURL) return alert("自定义 API 需要填写接口地址");
+
+    const payload = { name, provider, key, model, baseURL, customModels };
+    if (_editingApiId) {
+      const idx = apiConfigs.findIndex(c => c.id === _editingApiId);
+      if (idx >= 0) {
+        apiConfigs[idx] = { ...apiConfigs[idx], ...payload };
+      }
+    } else {
+      apiConfigs.push({ id: 'cfg_' + Date.now(), ...payload });
+    }
+    Storage.set("apiConfigs", apiConfigs);
+    if (!activeApiId && apiConfigs.length) {
+      activeApiId = apiConfigs[0].id;
+      Storage.set("activeApiId", activeApiId);
+    }
+    $("#modal-api-edit").classList.add("hidden");
+    renderSettingsApiList();
+  }
+
+  // 根据服务商更新模型下拉选项（用于编辑弹窗）
+  const editProviderSel = $("#edit-api-provider");
+  if (editProviderSel) {
+    editProviderSel.onchange = () => {
+      const p = editProviderSel.value;
+      updateEditModelOptions(p);
+      toggleCustomFields(p);
+    };
+  }
+  const editCustomModels = $("#edit-api-custommodels");
+  if (editCustomModels) {
+    editCustomModels.oninput = () => {
+      updateEditModelOptions($("#edit-api-provider").value);
+    };
+  }
+
+  // 设置面板标签切换
+  function switchSettingsTab(tab) {
+    $$('.settings-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    $$('.settings-panel').forEach(p => p.classList.toggle('hidden', p.dataset.panel !== tab));
+  }
+  $$('.settings-tab').forEach(t => t.onclick = () => switchSettingsTab(t.dataset.tab));
+
+  $("#btn-settings").onclick = () => {
+    switchSettingsTab('api');
+    renderSettingsApiList();
     $("#modal-settings").classList.remove("hidden");
   };
-  // 保存 API 配置
-  const saveApiConfig = () => {
-    apiConfig.key = $("#input-api-key").value.trim();
-    apiConfig.model = $("#select-model").value;
-    apiConfig.provider = $("#select-provider").value;
-    Storage.set("apiConfig", apiConfig);
-    $("#api-status").textContent = apiConfig.key ? "✔️" : "";
-  };
-  // 切换服务商 → 更新模型列表
-  $("#select-provider").onchange = () => {
-    const p = $("#select-provider").value;
-    updateModelOptions(p);
-    // 自动选中该服务商的第一个模型
-    apiConfig.model = $("#select-model").value;
-    saveApiConfig();
-  };
-  $("#input-api-key").oninput = saveApiConfig;
-  $("#select-model").onchange = saveApiConfig;
+  $("#btn-add-api").onclick = () => openApiEdit();
+  $("#btn-save-api").onclick = saveApiEdit;
+  $("#btn-cancel-api").onclick = () => $("#modal-api-edit").classList.add("hidden");
+
   $("#btn-export").onclick = exportData;
   $("#btn-import").onclick = () => $("#import-file").click();
   $("#btn-template").onclick = downloadTemplate;

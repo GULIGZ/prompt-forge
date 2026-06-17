@@ -117,25 +117,106 @@
     <div class="modal-actions"><button class="btn-cancel">取消</button><button class="btn-danger">确认删除</button></div>
   </div></div>
 
-  <div id="modal-settings" class="modal hidden"><div class="modal-content">
-    <h3>设置</h3>
-    <div class="setting-row"><button id="btn-export"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> 导出数据</button><button id="btn-import"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> 导入数据</button><button id="btn-template"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> 下载模版</button><input type="file" id="import-file" accept=".json,.csv" hidden></div>
-    <div class="setting-row setting-api">
-      <span class="setting-label"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg> API</span>
-      <input type="password" id="input-api-key" class="setting-input" placeholder="sk-...">
+  <!-- 设置弹窗 -->
+  <div id="modal-settings" class="modal hidden">
+    <div class="modal-content modal-settings-wide">
+      <div class="settings-layout">
+        <!-- 左侧标签导航 -->
+        <nav class="settings-tabs">
+          <div class="settings-tab active" data-tab="api"><span class="icon-svg">🔑</span> API 配置</div>
+          <div class="settings-tab" data-tab="data"><span class="icon-svg">📦</span> 数据管理</div>
+          <div class="settings-tab" data-tab="about"><span class="icon-svg">ℹ️</span> 关于</div>
+        </nav>
+
+        <!-- 右侧内容区 -->
+        <div class="settings-body">
+
+          <!-- API 配置面板 -->
+          <div class="settings-panel" data-panel="api">
+            <div class="settings-panel-header">
+              <h3>API 配置</h3>
+              <button id="btn-add-api" class="btn-add-api"><span class="icon-svg">+</span> 添加 API</button>
+            </div>
+            <div id="api-list" class="api-list"></div>
+          </div>
+
+          <!-- 数据管理面板 -->
+          <div class="settings-panel hidden" data-panel="data">
+            <h3>数据管理</h3>
+            <div class="settings-data-actions">
+              <button id="btn-export"><span class="icon-svg">📤</span> 导出数据</button>
+              <button id="btn-import"><span class="icon-svg">📥</span> 导入数据</button>
+              <button id="btn-template"><span class="icon-svg">📋</span> 下载模版</button>
+              <input type="file" id="import-file" accept=".json,.csv" hidden>
+            </div>
+            <div class="settings-danger-zone">
+              <h4>危险操作</h4>
+              <button id="btn-reset" class="btn-danger"><span class="icon-svg">🗑️</span> 重置默认数据</button>
+            </div>
+          </div>
+
+          <!-- 关于面板 -->
+          <div class="settings-panel hidden" data-panel="about">
+            <h3>关于 PromptForge</h3>
+            <div class="about-content">
+              <div class="about-logo"><span class="logomark">P</span> PromptForge</div>
+              <p class="about-desc">一个简洁高效的 AI 提示词管理工具，支持标签拖拽组合、AI 语义拆分、图片反推等功能。</p>
+              <div class="about-links">
+                <a href="https://github.com/GULIGZ/prompt-forge" target="_blank" rel="noopener">GitHub 仓库</a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- 底部关闭按钮 -->
+      <div class="settings-footer">
+        <button class="btn-cancel btn-close-settings">关闭</button>
+      </div>
     </div>
-    <div class="setting-row setting-api-meta">
-      <select id="select-provider" class="setting-select">
-        <option value="openai">OpenAI</option>
-        <option value="xiaomi">小米 MiMo</option>
-      </select>
-      <select id="select-model" class="setting-select">
-      </select>
-      <span id="api-status" class="setting-status"></span>
+  </div>
+
+  <!-- API 编辑/添加弹窗 -->
+  <div id="modal-api-edit" class="modal hidden">
+    <div class="modal-content">
+      <h3 id="edit-api-title">添加 API 配置</h3>
+      <div class="api-edit-form">
+        <label>配置名称</label>
+        <input type="text" id="edit-api-name" placeholder="例如：我的 OpenAI">
+        <label>服务商</label>
+        <select id="edit-api-provider" class="setting-select">
+          <option value="openai">OpenAI</option>
+          <option value="xiaomi">小米 MiMo</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="moonshot">Moonshot (Kimi)</option>
+          <option value="zhipu">智谱 AI</option>
+          <option value="siliconflow">硅基流动</option>
+          <option value="alibaba">阿里云百炼</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="together">Together AI</option>
+          <option value="groq">Groq</option>
+          <option value="custom">自定义</option>
+        </select>
+        <label>API 密钥</label>
+        <input type="password" id="edit-api-key" placeholder="sk-... 或 其他格式密钥">
+        <label>模型</label>
+        <select id="edit-api-model" class="setting-select"></select>
+        <div id="edit-api-custommodels-wrap">
+          <label>自定义模型（可选，用逗号或换行分隔）</label>
+          <textarea id="edit-api-custommodels" rows="2" placeholder="例如：gpt-4o, gpt-4o-mini"></textarea>
+        </div>
+        <div id="edit-api-custom-wrap" class="hidden">
+          <label>接口地址 (baseURL)</label>
+          <input type="text" id="edit-api-baseurl" placeholder="https://api.example.com/v1">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-cancel-api" class="btn-cancel">取消</button>
+        <button id="btn-save-api" class="btn-confirm">保存</button>
+      </div>
     </div>
-    <div class="setting-row"><button id="btn-reset" class="btn-danger">重置默认数据</button></div>
-    <div class="modal-actions"><button class="btn-cancel">关闭</button></div>
-  </div></div>
+  </div>
 
   <!-- 撤销通知 -->
   <div id="undo-toast" class="undo-toast hidden">
