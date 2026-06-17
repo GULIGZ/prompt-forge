@@ -598,12 +598,12 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   box-shadow: var(--shadow-lg);
 }
 .modal-content h3 { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
-.modal-content input, .modal-content textarea {
+.modal-content input, .modal-content textarea, .modal-content select {
   background: var(--bg); border: 1px solid var(--border);
   border-radius: 9px; color: var(--text); padding: 10px 14px; font-size: 14px; font-family: inherit;
   transition: border-color 0.2s;
 }
-.modal-content input:focus, .modal-content textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(4,208,90,0.1); }
+.modal-content input:focus, .modal-content textarea:focus, .modal-content select:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(4,208,90,0.1); }
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 .modal-actions button {
   padding: 8px 20px; border-radius: 9px; border: none; cursor: pointer;
@@ -812,8 +812,19 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   background: var(--bg3);
   color: var(--text);
 }
-.api-btn-setdef:hover {
-  color: var(--orange) !important;
+.api-btn-toggle {
+  cursor: pointer !important;
+}
+.api-btn-toggle:hover {
+  background: transparent !important;
+}
+.api-btn-toggle svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.15s;
+}
+.api-btn-toggle:hover svg {
+  transform: scale(1.1);
 }
 .api-btn-edit:hover {
   color: var(--accent) !important;

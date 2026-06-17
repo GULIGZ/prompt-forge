@@ -58,6 +58,7 @@ const ICON_SVG = {
   '🖼️': _S('M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zM8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3zM21 15l-5-5L5 21'),
   '+': _S('M12 5v14M5 12h14'),
   '🌐': _C(12, 12, 10) + '<line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>',
+  '🔛': '<rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="12" r="3" fill="currentColor" stroke="none"/>',
 };
 function renderIcon(key) { return `<span class="icon-svg">${ICON_SVG[key] || key}</span>`; }
 function iconSvg(key) { return ICON_SVG[key] || key; }
@@ -1743,6 +1744,8 @@ function bindEvents() {
       el.innerHTML = `<div class="api-empty">暂无 API 配置，点击上方「添加 API」按钮</div>`;
       return;
     }
+    const toggleOn = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="var(--accent)" stroke-width="2"/><circle cx="17" cy="12" r="3" fill="var(--accent)"/></svg>';
+    const toggleOff = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="var(--text3)" stroke-width="2" opacity="0.5"/><circle cx="8" cy="12" r="3" fill="var(--text3)" opacity="0.5"/></svg>';
     el.innerHTML = apiConfigs.map(cfg => {
       const isActive = cfg.id === activeApiId;
       const prov = API_PROVIDERS[cfg.provider] || API_PROVIDERS.openai;
@@ -1752,18 +1755,19 @@ function bindEvents() {
           <span class="api-item-detail">${prov.name} · ${cfg.model}</span>
         </div>
         <div class="api-item-actions">
-          ${isActive ? '<span class="api-badge">默认</span>' : ''}
-          <button class="api-btn-setdef" data-id="${cfg.id}" title="设为默认">${iconSvg('⭐')}</button>
+          <button class="api-btn-toggle" data-id="${cfg.id}" title="${isActive ? '正在使用' : '设为默认'}">${isActive ? toggleOn : toggleOff}</button>
           <button class="api-btn-edit" data-id="${cfg.id}" title="编辑">${iconSvg('✏️')}</button>
           <button class="api-btn-del" data-id="${cfg.id}" title="删除">${iconSvg('🗑️')}</button>
         </div>
       </div>`;
     }).join("");
 
-    // 设为默认
-    $$('.api-btn-setdef').forEach(b => b.onclick = (e) => {
+    // 切换默认
+    $$('.api-btn-toggle').forEach(b => b.onclick = (e) => {
       e.stopPropagation();
-      activeApiId = b.dataset.id;
+      const id = b.dataset.id;
+      if (id === activeApiId) return; // 已经是默认，不需要切换
+      activeApiId = id;
       Storage.set("activeApiId", activeApiId);
       renderSettingsApiList();
     });
@@ -1776,6 +1780,10 @@ function bindEvents() {
     $$('.api-btn-del').forEach(b => b.onclick = (e) => {
       e.stopPropagation();
       const id = b.dataset.id;
+      if (apiConfigs.length <= 1) {
+        alert("至少保留一个 API 配置，如需删除请先添加新配置");
+        return;
+      }
       const cfg = apiConfigs.find(c => c.id === id);
       openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
         apiConfigs = apiConfigs.filter(c => c.id !== id);
