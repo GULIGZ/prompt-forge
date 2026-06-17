@@ -1761,52 +1761,6 @@ function bindEvents() {
         </div>
       </div>`;
     }).join("");
-
-    // 使用事件委托，避免每项单独绑定 onclick
-    if (!el._delegated) {
-      el._delegated = true;
-      el.addEventListener('click', (e) => {
-        const delBtn = e.target.closest('.api-btn-del');
-        if (delBtn) {
-          e.stopPropagation();
-          const id = delBtn.dataset.id;
-          if (apiConfigs.length <= 1) {
-            alert("至少保留一个 API 配置，如需删除请先添加新配置");
-            return;
-          }
-          const cfg = apiConfigs.find(c => c.id === id);
-          openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
-            apiConfigs = apiConfigs.filter(c => c.id !== id);
-            Storage.set("apiConfigs", apiConfigs);
-            if (activeApiId === id) {
-              activeApiId = apiConfigs[0]?.id || null;
-              Storage.set("activeApiId", activeApiId);
-            }
-            renderSettingsApiList();
-          });
-          return;
-        }
-
-        const editBtn = e.target.closest('.api-btn-edit');
-        if (editBtn) {
-          e.stopPropagation();
-          openApiEdit(editBtn.dataset.id);
-          return;
-        }
-
-        const toggleBtn = e.target.closest('.api-btn-toggle');
-        if (toggleBtn) {
-          e.stopPropagation();
-          const id = toggleBtn.dataset.id;
-          if (id && id !== activeApiId) {
-            activeApiId = id;
-            Storage.set("activeApiId", activeApiId);
-            renderSettingsApiList();
-          }
-          return;
-        }
-      });
-    }
   }
 
   function openApiEdit(id) {
@@ -1915,6 +1869,49 @@ function bindEvents() {
   $("#btn-add-api").onclick = () => openApiEdit();
   $("#btn-save-api").onclick = saveApiEdit;
   $("#btn-cancel-api").onclick = () => $("#modal-api-edit").classList.add("hidden");
+
+  // API 列表按钮：用 document 级事件委托，确保任何渲染方式都能捕获点击
+  document.addEventListener('click', (e) => {
+    // 只在设置弹窗打开时才处理
+    if ($("#modal-settings").classList.contains("hidden")) return;
+
+    const delBtn = e.target.closest('.api-btn-del');
+    if (delBtn) {
+      const id = delBtn.dataset.id;
+      if (apiConfigs.length <= 1) {
+        alert("至少保留一个 API 配置，如需删除请先添加新配置");
+        return;
+      }
+      const cfg = apiConfigs.find(c => c.id === id);
+      openConfirm(`确定删除 API 配置「${cfg?.name || '未命名'}」吗？`, () => {
+        apiConfigs = apiConfigs.filter(c => c.id !== id);
+        Storage.set("apiConfigs", apiConfigs);
+        if (activeApiId === id) {
+          activeApiId = apiConfigs[0]?.id || null;
+          Storage.set("activeApiId", activeApiId);
+        }
+        renderSettingsApiList();
+      });
+      return;
+    }
+
+    const editBtn = e.target.closest('.api-btn-edit');
+    if (editBtn) {
+      openApiEdit(editBtn.dataset.id);
+      return;
+    }
+
+    const toggleBtn = e.target.closest('.api-btn-toggle');
+    if (toggleBtn) {
+      const id = toggleBtn.dataset.id;
+      if (id && id !== activeApiId) {
+        activeApiId = id;
+        Storage.set("activeApiId", activeApiId);
+        renderSettingsApiList();
+      }
+      return;
+    }
+  });
 
   $("#btn-export").onclick = exportData;
   $("#btn-import").onclick = () => $("#import-file").click();
