@@ -580,9 +580,16 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 /* ========== Global Search: category label on cards ========== */
 .tag-card .cat-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-size: 11px; color: var(--text3); background: var(--bg);
   padding: 1px 6px; border-radius: 4px; white-space: nowrap;
   font-weight: 500; margin-left: 2px;
+}
+.tag-card .cat-label svg {
+  width: 11px;
+  height: 11px;
 }
 
 /* ========== Modal ========== */

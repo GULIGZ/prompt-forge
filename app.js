@@ -584,7 +584,7 @@ function renderLibrary() {
         <span class="fav-dot"></span>
         <span class="cn">${t.cn}</span>
         ${t.en ? `<span class="en">${t.en}</span>` : ''}
-        ${cat && cat.id !== FAV_CAT_ID ? `<span class="cat-label">${cat.icon} ${cat.name}</span>` : ''}
+        ${cat && cat.id !== FAV_CAT_ID ? `<span class="cat-label">${iconSvg(cat.icon)} ${cat.name}</span>` : ''}
         <div class="actions">
           <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
           <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
@@ -1732,7 +1732,7 @@ function bindEvents() {
   $$(".modal .btn-cancel").forEach(b => b.onclick = closeModals);
   $$(".modal").forEach(m => m.onclick = (e) => { if (e.target === m) closeModals(); });
   $("#modal-tag .btn-confirm").onclick = confirmTag;
-  $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal-confirm").classList.add("hidden"); };
+  $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal-confirm").classList.add("hidden"); if ($("#modal-settings").classList.contains("hidden")) $("#modal-settings").classList.remove("hidden"); };
   $("#modal-confirm .btn-cancel").onclick = () => { $("#modal-confirm").classList.add("hidden"); };
 
   // ========== 设置面板（多 API 配置 + 标签页）==========
