@@ -146,6 +146,7 @@ function migrateSchema() {
 let dragFromLibrary = null;
 let catEditMode = false;
 let libEditMode = false;
+let _pendingConnectionStatus = null;
 
 // API 配置
 const API_PROVIDERS = {
@@ -1944,7 +1945,7 @@ async function doReversePrompt() {
       ]},
     ], { model: apiConfig.model });
     if (error) {
-      resultEl.value = `❌ 反推失败\n\n当前配置：${provider.name} / ${apiConfig.model}\nAPI 地址：${(apiConfig.baseURL || provider.baseURL || "默认")}\n\n错误详情：${error}\n\n提示：如果您的 API 不支持图片识别，请切换到支持 Vision 的模型（如 gpt-4o / gpt-4o-mini）或 OpenAI 官方 API。`;
+      resultEl.value = `❌ 反推失败\n\n当前配置：${provider.name} / ${apiConfig.model}\n错误详情：${error}\n\n提示：小米 mimo-v2.5 可能不支持 OpenAI 标准的图片格式。试试在设置中添加硅基流动(支持 Vision)的 API 配置。`;
       return;
     }
     resultEl.value = content;
@@ -2171,6 +2172,7 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
       const safeId = "'" + String(cfg.id).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
       return `<div class="api-item ${isActive ? 'active' : ''}" data-id="${cfg.id}">
         <div class="api-item-info">
+          <span class="api-status-dot ${cfg.connectionStatus || ''}" title="${cfg.connectionError || ''}"></span>
           <span class="api-item-name">${cfg.name || prov.name}</span>
           <span class="api-item-detail">${prov.name} · ${cfg.model}</span>
         </div>
@@ -2267,6 +2269,11 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
     if (provider === "custom" && !baseURL) return alert("自定义 API 需要填写接口地址");
 
     const payload = { name, provider, key, model, baseURL, customModels };
+    if (_pendingConnectionStatus) {
+      payload.connectionStatus = "ok";
+      payload.connectionTestedAt = Date.now();
+      _pendingConnectionStatus = null;
+    }
     if (_editingApiId) {
       const idx = apiConfigs.findIndex(c => c.id === _editingApiId);
       if (idx >= 0) {
@@ -2284,6 +2291,28 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
     renderSettingsApiList();
   }
 
+  // ========== 获取模型 / 测试连接 ==========
+  async function fetchModelsFromApi(provider, baseURL, key) {
+    const prov = API_PROVIDERS[provider] || API_PROVIDERS.openai;
+    const url = (baseURL || prov.baseURL || '').replace(/\/+$/, '') + '/models';
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `HTTP ${res.status}`);
+    }
+    const json = await res.json();
+    return (json.data || []).map(m => ({ value: m.id, label: m.id }));
+  }
+  function showConnectionStatus(msg, type) {
+    const el = $("#api-connection-status");
+    if (!el) return;
+    el.classList.remove("hidden", "ok", "error", "checking");
+    if (type) el.classList.add(type);
+    el.textContent = msg;
+  }
+
   // 根据服务商更新模型下拉选项（用于编辑弹窗）
   const editProviderSel = $("#edit-api-provider");
   if (editProviderSel) {
@@ -2291,6 +2320,7 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
       const p = editProviderSel.value;
       updateEditModelOptions(p);
       toggleCustomFields(p);
+      showConnectionStatus("", "");
     };
   }
   const editCustomModels = $("#edit-api-custommodels");
@@ -2315,6 +2345,58 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
   $("#btn-add-api").onclick = () => openApiEdit();
   $("#btn-save-api").onclick = saveApiEdit;
   $("#btn-cancel-api").onclick = () => $("#modal-api-edit").classList.add("hidden");
+
+  // 获取模型按钮
+  $("#btn-fetch-models").onclick = async () => {
+    const provider = $("#edit-api-provider").value;
+    const key = $("#edit-api-key").value.trim();
+    const baseURL = $("#edit-api-baseurl")?.value.trim() || "";
+    if (!key) return alert("请先填写 API 密钥");
+    showConnectionStatus("⏳ 正在获取模型列表...", "checking");
+    try {
+      const models = await fetchModelsFromApi(provider, baseURL, key);
+      if (!models.length) { showConnectionStatus("⚠️ 未获取到模型", "error"); return; }
+      const sel = $("#edit-api-model");
+      sel.innerHTML = models.map(m => `<option value="${m.value}">${m.label}</option>`).join("");
+      if (models.length) sel.value = models[0].value;
+      showConnectionStatus(`✅ 获取到 ${models.length} 个模型`, "ok");
+    } catch (err) {
+      showConnectionStatus("❌ 获取失败: " + (err.message || "未知错误"), "error");
+    }
+  };
+  // 测试连接按钮（复用获取模型逻辑，检查是否连通）
+  $("#btn-test-connection").onclick = async () => {
+    const provider = $("#edit-api-provider").value;
+    const key = $("#edit-api-key").value.trim();
+    const baseURL = $("#edit-api-baseurl")?.value.trim() || "";
+    if (!key) return alert("请先填写 API 密钥");
+    showConnectionStatus("⏳ 连接测试中...", "checking");
+    try {
+      await fetchModelsFromApi(provider, baseURL, key);
+      _pendingConnectionStatus = "ok";
+      showConnectionStatus("✅ 连接成功，保存后列表将显示绿色状态", "ok");
+    } catch (err) {
+      _pendingConnectionStatus = "error";
+      showConnectionStatus("❌ 连接失败: " + (err.message || "未知错误"), "error");
+    }
+  };
+  // 保存/编辑时重置状态标记
+  const _origSave = saveApiEdit;
+  saveApiEdit = function() {
+    showConnectionStatus("", "");
+    _origSave();
+  };
+  const _origOpenEdit = openApiEdit;
+  openApiEdit = function(id) {
+    _origOpenEdit(id);
+    showConnectionStatus("", "");
+    _pendingConnectionStatus = null;
+    if (id) {
+      const cfg = apiConfigs.find(c => c.id === id);
+      if (cfg?.connectionStatus === "ok") showConnectionStatus("✅ 上次测试连接成功", "ok");
+      else if (cfg?.connectionStatus === "error") showConnectionStatus("❌ 上次测试连接失败", "error");
+    }
+  };
 
   $("#btn-export").onclick = exportData;
   $("#btn-import").onclick = () => $("#import-file").click();

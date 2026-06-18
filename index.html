@@ -232,19 +232,24 @@
         </select>
         <label>API 密钥</label>
         <input type="password" id="edit-api-key" placeholder="sk-... 或 其他格式密钥">
-        <label>模型</label>
-        <select id="edit-api-model" class="setting-select"></select>
-        <div id="edit-api-custommodels-wrap">
+    <label>模型</label>
+    <select id="edit-api-model" class="setting-select"></select>
+    <button id="btn-fetch-models" class="btn-fetch-models" type="button">🔄 获取模型</button>
+    <div id="api-connection-status" class="api-connection-status hidden"></div>
+    <div id="edit-api-custommodels-wrap">
           <label>自定义模型（可选，用逗号或换行分隔）</label>
           <textarea id="edit-api-custommodels" rows="2" placeholder="例如：gpt-4o, gpt-4o-mini"></textarea>
         </div>
         <div id="edit-api-custom-wrap" class="hidden">
           <label>接口地址 (baseURL)</label>
-          <input type="text" id="edit-api-baseurl" placeholder="https://api.example.com/v1">
-        </div>
+        <input type="text" id="edit-api-baseurl" placeholder="https://api.example.com/v1">
       </div>
-      <div class="modal-actions">
-        <button id="btn-cancel-api" class="btn-cancel">取消</button>
+      <div class="api-test-row">
+        <button id="btn-test-connection" class="btn-test-connection" type="button">🔌 测试连接</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="btn-cancel-api" class="btn-cancel">取消</button>
         <button id="btn-save-api" class="btn-confirm">保存</button>
       </div>
     </div>

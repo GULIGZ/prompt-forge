@@ -888,6 +888,37 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .btn-add-api:hover { opacity: 0.9; }
 
+.api-status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  display: inline-block; flex-shrink: 0;
+  background: var(--text3); opacity: 0.4;
+  margin-right: 6px; vertical-align: middle;
+  transition: background 0.3s, opacity 0.3s;
+}
+.api-status-dot.ok { background: var(--accent); opacity: 1; }
+.api-status-dot.error { background: var(--highlight); opacity: 1; }
+.btn-fetch-models {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  padding: 5px 10px; border-radius: var(--radius); cursor: pointer;
+  font-size: 12px; display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 4px; transition: all 0.15s;
+}
+.btn-fetch-models:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.api-test-row { display: flex; gap: 8px; margin-top: 4px; }
+.btn-test-connection {
+  background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
+  padding: 5px 12px; border-radius: var(--radius); cursor: pointer;
+  font-size: 12px; display: inline-flex; align-items: center; gap: 4px;
+  transition: all 0.15s;
+}
+.btn-test-connection:hover { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.08); }
+.api-connection-status {
+  font-size: 12px; padding: 6px 8px; border-radius: 6px;
+  margin-top: 4px; transition: all 0.2s;
+}
+.api-connection-status.ok { background: rgba(4,208,90,0.08); color: var(--accent); }
+.api-connection-status.error { background: rgba(220,38,38,0.08); color: var(--highlight); }
+.api-connection-status.checking { background: rgba(234,179,8,0.08); color: #b8860b; }
 /* API 编辑表单 */
 .api-edit-form {
   display: flex;
