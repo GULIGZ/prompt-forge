@@ -9,22 +9,57 @@ const Storage = {
 
 // ========== 默认数据 ==========
 const FAV_CAT_ID = -1;
+const UNCAT_ID = -2; // 未分类（孤儿标签收容所，固定不可删）
+const SCHEMA_VERSION = 2;
+// 两层本体：parentId === null 为大类；parentId = 大类id 为子类
 const DEFAULT_CATEGORIES = [
   { id: FAV_CAT_ID, name: "收藏", icon: "⭐", fixed: true },
-  { id: 1, name: "风格", icon: "🎨" }, { id: 2, name: "背景", icon: "🏞️" },
-  { id: 3, name: "场景", icon: "🎭" }, { id: 4, name: "人物姿态", icon: "🧍" },
-  { id: 5, name: "人物外貌", icon: "👤" }, { id: 6, name: "服装", icon: "👔" },
-  { id: 7, name: "光影", icon: "💡" }, { id: 8, name: "色彩", icon: "🌈" },
-  { id: 9, name: "镜头", icon: "📷" }, { id: 10, name: "特效", icon: "✨" },
-  { id: 11, name: "画质", icon: "🏷️" },
+  { id: UNCAT_ID, name: "未分类", icon: "🧩", fixed: true, parentId: null },
+  // 大类
+  { id: 1, name: "主体", icon: "🧍", parentId: null },
+  { id: 2, name: "场景", icon: "🏞️", parentId: null },
+  { id: 3, name: "镜头", icon: "📷", parentId: null },
+  { id: 4, name: "风格", icon: "🎨", parentId: null },
+  { id: 5, name: "光影", icon: "💡", parentId: null },
+  { id: 6, name: "细节", icon: "✨", parentId: null },
+  { id: 7, name: "画质", icon: "🏷️", parentId: null },
+  // 主体
+  { id: 101, name: "人物", icon: "👤", parentId: 1 },
+  { id: 102, name: "动物", icon: "🐾", parentId: 1 },
+  { id: 103, name: "物体", icon: "📦", parentId: 1 },
+  { id: 104, name: "场景主体", icon: "🏞️", parentId: 1 },
+  // 场景
+  { id: 111, name: "大场景", icon: "🗺️", parentId: 2 },
+  { id: 112, name: "时间天气", icon: "🌦️", parentId: 2 },
+  { id: 113, name: "背景层次", icon: "🖼️", parentId: 2 },
+  // 镜头
+  { id: 121, name: "景别", icon: "🔍", parentId: 3 },
+  { id: 122, name: "视角", icon: "📷", parentId: 3 },
+  { id: 123, name: "构图法则", icon: "🖼️", parentId: 3 },
+  { id: 124, name: "画幅", icon: "🏷️", parentId: 3 },
+  // 风格
+  { id: 131, name: "摄影写实", icon: "📷", parentId: 4 },
+  { id: 132, name: "传统绘画", icon: "🎨", parentId: 4 },
+  { id: 133, name: "动漫二次元", icon: "🤖", parentId: 4 },
+  { id: 134, name: "3D渲染", icon: "🖼️", parentId: 4 },
+  { id: 135, name: "主题氛围", icon: "✨", parentId: 4 },
+  { id: 136, name: "风格修饰语", icon: "🏷️", parentId: 4 },
+  // 光影
+  { id: 141, name: "光源方向", icon: "💡", parentId: 5 },
+  { id: 142, name: "大气特效", icon: "🌈", parentId: 5 },
+  { id: 143, name: "色调情绪", icon: "🎨", parentId: 5 },
+  // 细节
+  { id: 151, name: "主体材质", icon: "✨", parentId: 6 },
+  { id: 152, name: "动态微粒", icon: "✨", parentId: 6 },
+  { id: 153, name: "干净度约束", icon: "🧩", parentId: 6 },
 ];
 const DEFAULT_TAGS = [
-  { id: 1, categoryId: 1, cn: "赛博朋克" }, { id: 2, categoryId: 1, cn: "油画" },
-  { id: 3, categoryId: 1, cn: "水彩" }, { id: 4, categoryId: 1, cn: "像素风" },
-  { id: 5, categoryId: 1, cn: "宫崎骏风" }, { id: 6, categoryId: 7, cn: "霓虹灯光" },
-  { id: 7, categoryId: 7, cn: "体积光" }, { id: 8, categoryId: 7, cn: "丁达尔效应" },
-  { id: 9, categoryId: 11, cn: "8K超高清" }, { id: 10, categoryId: 11, cn: "超精细" },
-  { id: 11, categoryId: 11, cn: "虚幻引擎" }, { id: 12, categoryId: 11, cn: "电影级" },
+  { id: 1, categoryId: 135, cn: "赛博朋克" }, { id: 2, categoryId: 132, cn: "油画" },
+  { id: 3, categoryId: 132, cn: "水彩" }, { id: 4, categoryId: 133, cn: "像素风" },
+  { id: 5, categoryId: 133, cn: "宫崎骏风" }, { id: 6, categoryId: 141, cn: "霓虹灯光" },
+  { id: 7, categoryId: 142, cn: "体积光" }, { id: 8, categoryId: 142, cn: "丁达尔效应" },
+  { id: 9, categoryId: 7, cn: "8K超高清" }, { id: 10, categoryId: 7, cn: "超精细" },
+  { id: 11, categoryId: 7, cn: "虚幻引擎" }, { id: 12, categoryId: 7, cn: "电影级" },
 ];
 
 // ========== SVG 图标映射 ==========
@@ -67,9 +102,45 @@ function iconSvg(key) { return ICON_SVG[key] || key; }
 let categories = Storage.get("categories", DEFAULT_CATEGORIES);
 let tags = Storage.get("tags", DEFAULT_TAGS);
 let canvasTags = Storage.get("canvas", []);
-let currentCatId = categories[0]?.id;
+migrateSchema(); // 旧扁平分类 → 两层本体
+let currentCatId = categories.find(c => c.parentId == null && !c.fixed)?.id || categories.find(c => c.parentId == null)?.id || FAV_CAT_ID;
 let showEn = false;
 let nextId = Math.max(0, ...tags.map(t => t.id), ...categories.map(c => c.id)) + 1;
+
+// 旧 schema（扁平分类无 parentId）→ 两层本体迁移
+function migrateSchema() {
+  if (Storage.get("schemaVersion", 1) >= SCHEMA_VERSION) return;
+  const isOld = categories.some(c => c.id !== FAV_CAT_ID && c.parentId === undefined);
+  if (!isOld) { Storage.set("schemaVersion", SCHEMA_VERSION); return; }
+  // 旧分类名 → 新大类 id
+  const nameToBig = { "风格": 4, "背景": 2, "场景": 2, "人物姿态": 1, "人物外貌": 1, "服装": 1, "光影": 5, "色彩": 5, "镜头": 3, "特效": 6, "画质": 7 };
+  const oldIdToBig = {}; // 旧分类id → 新大类id（已知名）
+  const customCats = []; // 用户自定义分类（名不在映射表）→ 升为新大类
+  categories.forEach(c => {
+    if (c.id === FAV_CAT_ID) return;
+    if (nameToBig[c.name]) oldIdToBig[c.id] = nameToBig[c.name];
+    else customCats.push(c);
+  });
+  let nextBig = 8;
+  const customOldToNew = {}; // 自定义旧id → 新大类id
+  customCats.forEach(c => { customOldToNew[c.id] = nextBig++; });
+  // 重建分类：FAV + 未分类 + 7 大类（带子类）+ 自定义大类
+  categories = [
+    { id: FAV_CAT_ID, name: "收藏", icon: "⭐", fixed: true },
+    { id: UNCAT_ID, name: "未分类", icon: "🧩", fixed: true, parentId: null },
+    ...DEFAULT_CATEGORIES.filter(c => c.id !== FAV_CAT_ID && c.id !== UNCAT_ID),
+    ...customCats.map(c => ({ id: customOldToNew[c.id], name: c.name, icon: c.icon, parentId: null })),
+  ];
+  // 重映射标签
+  tags.forEach(t => {
+    if (oldIdToBig[t.categoryId] != null) t.categoryId = oldIdToBig[t.categoryId];
+    else if (customOldToNew[t.categoryId] != null) t.categoryId = customOldToNew[t.categoryId];
+    else t.categoryId = UNCAT_ID;
+  });
+  Storage.set("categories", categories);
+  Storage.set("tags", tags);
+  Storage.set("schemaVersion", SCHEMA_VERSION);
+}
 
 // 拖拽状态
 let dragFromLibrary = null;
@@ -359,6 +430,8 @@ function initDragDelegation() {
     _catDrag.insertIdx = _catDrag.idx;
     startDragGhost(_catDrag, tab, e);
     _catDrag.wasMoved = false;
+    // 延迟加 is-dragging，避免纯点击就变淡闪烁
+    tab.classList.remove('is-dragging');
   });
 
   // --- 词库卡片 ---
@@ -373,6 +446,8 @@ function initDragDelegation() {
     _libDrag.insertIdx = _libDrag.idx;
     startDragGhost(_libDrag, card, e);
     _libDrag.wasMoved = false;
+    // 延迟加 is-dragging，避免纯点击就变淡/收缩
+    card.classList.remove('is-dragging');
     // 编辑模式下显示让位效果，非编辑模式隐藏插入光标
     if (!libEditMode) hideBar('library');
   });
@@ -526,7 +601,7 @@ function init() {
     categories.unshift({ id: FAV_CAT_ID, name: "收藏", icon: "⭐", fixed: true });
     Storage.set("categories", categories);
   }
-  currentCatId = currentCatId || categories[0]?.id;
+  currentCatId = currentCatId || categories.find(c => c.parentId == null && !c.fixed)?.id || FAV_CAT_ID;
   renderTabs(); renderLibrary(); renderCanvas();
   bindEvents();
   initPanelResize(); // 左右面板分隔条拖拽
@@ -542,7 +617,9 @@ function renderTabs() {
   const bar = el.parentElement;
   bar.classList.toggle("cat-edit-mode", catEditMode);
 
-  el.innerHTML = categories.map(c => {
+  // 只渲染大类（parentId == null，含收藏/未分类）+ 收藏
+  const bigs = categories.filter(c => c.parentId == null);
+  el.innerHTML = bigs.map(c => {
     const cls = ["tab"];
     if (c.id === currentCatId) cls.push("active");
     if (c.fixed) cls.push("fixed");
@@ -550,6 +627,7 @@ function renderTabs() {
     // 编辑按钮始终渲染在 HTML 中，CSS 控制显隐（避免切换编辑模式时重建 DOM 导致的闪烁）
     const actions = c.fixed ? ""
       : `<span class="cat-actions">
+           <button class="btn-cat-add-sub" data-id="${c.id}" title="加子类">${iconSvg('+')}</button>
            <button class="btn-cat-edit" data-id="${c.id}">${iconSvg('✏️')}</button>
            <button class="btn-cat-del" data-id="${c.id}">${iconSvg('✕')}</button>
          </span>`;
@@ -566,57 +644,110 @@ function renderTabs() {
   bindCatEditActions();
 }
 
+// 标签卡片 HTML（showCat=true 时附带分类标签，用于搜索结果）
+function cardHtml(t, showCat) {
+  const cat = categories.find(c => c.id === t.categoryId);
+  const catLabel = (showCat && cat && cat.id !== FAV_CAT_ID) ? `<span class="cat-label">${renderIcon(cat.icon)} ${cat.name}</span>` : "";
+  return `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}">
+    <span class="fav-dot"></span>
+    <span class="cn">${escapeHtml(t.cn)}</span>
+    ${catLabel}
+    <div class="actions">
+      <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
+      <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
+      <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
+    </div>
+  </div>`;
+}
+function emptyHint(msg) {
+  return `<div style="width:100%;text-align:center;color:var(--text3);padding:20px;">${msg}</div>`;
+}
+// 子类标题：折叠按钮常显；置顶/上下移/改名/删除仅编辑态（包在 .subcat-actions 内，CSS 控制显隐）
+function subcatHeaderHtml(cat, editMode, groupId, isCollapsed, isUngrouped) {
+  const chevron = `<button class="btn-sub-collapse" data-id="${groupId}" title="折叠/展开">${isCollapsed ? '▸' : '▾'}</button>`;
+  const move = !isUngrouped
+    ? `<button class="btn-sub-up" data-id="${cat.id}" title="上移">↑</button><button class="btn-sub-down" data-id="${cat.id}" title="下移">↓</button>`
+    : "";
+  const edit = (!isUngrouped && editMode)
+    ? `<button class="btn-sub-edit" data-id="${cat.id}">${iconSvg('✏️')}</button><button class="btn-sub-del" data-id="${cat.id}">${iconSvg('✕')}</button>`
+    : "";
+  return `<div class="subcat-header">${chevron}${renderIcon(cat.icon)}<span class="subcat-name">${cat.name}</span><span class="subcat-actions">${move}${edit}</span></div>`;
+}
+
+// 子类在兄弟中上/下移位
+function moveSubcat(id, dir) {
+  const cat = categories.find(c => c.id === id);
+  if (!cat || cat.parentId == null) return;
+  const siblings = categories.filter(c => c.parentId === cat.parentId);
+  const i = siblings.findIndex(c => c.id === id);
+  const j = i + dir;
+  if (j < 0 || j >= siblings.length) return;
+  const a = categories.indexOf(siblings[i]);
+  const b = categories.indexOf(siblings[j]);
+  [categories[a], categories[b]] = [categories[b], categories[a]];
+  Storage.set("categories", categories); renderLibrary();
+}
+function togglePinUngrouped(bigId) {
+  const arr = Storage.get("promptForge.pinUngrouped", []);
+  const i = arr.indexOf(bigId);
+  if (i >= 0) arr.splice(i, 1); else arr.push(bigId);
+  Storage.set("promptForge.pinUngrouped", arr); renderLibrary();
+}
+// 折叠/展开：只改 store + 切换 DOM，不整体重渲染
+function toggleSubcatCollapse(groupId) {
+  const arr = Storage.get("promptForge.collapsedSubs", []);
+  const i = arr.indexOf(groupId);
+  if (i >= 0) arr.splice(i, 1); else arr.push(groupId);
+  Storage.set("promptForge.collapsedSubs", arr);
+  const group = document.querySelector(`.subcat-group[data-group-id="${groupId}"]`);
+  if (group) {
+    const tagsEl = group.querySelector('.subcat-tags');
+    const hidden = tagsEl.classList.toggle('hidden');
+    const btn = group.querySelector('.btn-sub-collapse');
+    if (btn) btn.textContent = hidden ? '▸' : '▾';
+  }
+}
+
 function renderLibrary() {
   const kw = $("#search-input").value.trim().toLowerCase();
-  let list;
+  const el = $("#tag-grid");
+  el.classList.toggle("lib-edit-mode", libEditMode);
+
+  // 全局搜索：跨所有分类，卡片显示子类名
   if (kw) {
-    // 全局搜索：跨所有分类
-    list = tags.filter(t => fuzzyMatch(t.cn, kw));
-    const el = $("#tag-grid");
-    el.classList.toggle("lib-edit-mode", libEditMode);
-    if (list.length === 0) {
-      el.innerHTML = `<div style="width:100%;text-align:center;color:var(--text3);padding:20px;">无匹配结果</div>`;
-      bindCardEvents(); return;
-    }
-    el.innerHTML = list.map((t, i) => {
-      const cat = categories.find(c => c.id === t.categoryId);
-      return `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
-        <span class="fav-dot"></span>
-       <span class="cn">${t.cn}</span>
-        ${cat && cat.id !== FAV_CAT_ID ? `<span class="cat-label">${renderIcon(cat.icon)} ${cat.name}</span>` : ''}
-       <div class="actions">
-          <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
-          <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
-          <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
-        </div>
-      </div>`;
-    }).join("");
+    const list = tags.filter(t => fuzzyMatch(t.cn, kw));
+    if (list.length === 0) { el.innerHTML = emptyHint("无匹配结果"); bindCardEvents(); return; }
+    el.innerHTML = list.map(t => cardHtml(t, true)).join("");
     bindCardEvents(); return;
   }
 
+  // 收藏
   if (currentCatId === FAV_CAT_ID) {
-    list = tags.filter(t => t.favorited && (!kw || fuzzyMatch(t.cn, kw)));
-  } else {
-    list = tags.filter(t => t.categoryId === currentCatId && (!kw || fuzzyMatch(t.cn, kw)));
-  }
-  const el = $("#tag-grid");
-  el.classList.toggle("lib-edit-mode", libEditMode);
-  if (list.length === 0 && kw) {
-    el.innerHTML = `<div style="width:100%;text-align:center;color:var(--text3);padding:20px;">无匹配结果</div>`;
+    const list = tags.filter(t => t.favorited);
+    el.innerHTML = list.length ? list.map(t => cardHtml(t, false)).join("") : emptyHint("收藏夹为空");
     bindCardEvents(); return;
   }
-  el.innerHTML = list.map((t, i) =>
-    `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}" data-idx="${i}">
-      <span class="fav-dot"></span>
-     <span class="cn">${t.cn}</span>
-     <div class="actions">
-        <button class="btn-fav ${t.favorited ? 'active' : ''}" data-id="${t.id}">${iconSvg('⭐')}</button>
-        <button class="btn-edit" data-id="${t.id}">${iconSvg('✏️')}</button>
-        <button class="btn-delete" data-id="${t.id}">${iconSvg('🗑️')}</button>
-      </div>
-    </div>`
-  ).join("");
+
+  // 大类 tab：按子类分组
+  const big = categories.find(c => c.id === currentCatId && c.parentId == null);
+  if (!big) { el.innerHTML = emptyHint(""); bindCardEvents(); return; }
+  const subs = categories.filter(c => c.parentId === big.id);
+  const collapsed = Storage.get("promptForge.collapsedSubs", []);
+  const ungrouped = tags.filter(t => t.categoryId === big.id);
+
+  const renderGroup = (groupId, headerCat, list, isUngrouped) => {
+    const isCollapsed = collapsed.includes(groupId);
+    const tagsHtml = list.length ? list.map(t => cardHtml(t, false)).join("") : `<span class="subcat-empty">(空)</span>`;
+    html += `<div class="subcat-group" data-group-id="${groupId}">${subcatHeaderHtml(headerCat, catEditMode, groupId, isCollapsed, isUngrouped)}<div class="subcat-tags${isCollapsed ? ' hidden' : ''}">${tagsHtml}</div></div>`;
+  };
+
+  let html = "";
+  renderGroup(big.id, { id: big.id, icon: big.icon, name: "未分组" }, ungrouped, true);
+  subs.forEach(sub => renderGroup(sub.id, sub, tags.filter(t => t.categoryId === sub.id), false));
+
+  el.innerHTML = html || emptyHint("该分类下暂无提示词");
   bindCardEvents();
+  bindSubcatActions();
 }
 
 function renderCanvas() {
@@ -671,33 +802,41 @@ function initCatDragListeners() {
     // 移出 ghost
     if (_catDrag.ghost) { _catDrag.ghost.remove(); _catDrag.ghost = null; }
 
-    // 缩小 placeholder
-    if (_catDrag.el) _catDrag.el.classList.add('shrink-placeholder');
-
     // 快照排序所需数据
     const el = _catDrag.el;
     const insertIdx = _catDrag.insertIdx;
     const idx = _catDrag.idx;
-    _catDrag.el = null; _catDrag.idx = null; _catDrag.insertIdx = null;
+    const wasMoved = _catDrag.wasMoved;
+    const willReorder = wasMoved && el && insertIdx !== null && insertIdx !== idx;
+    _catDrag.el = null; _catDrag.idx = null; _catDrag.insertIdx = null; _catDrag.wasMoved = false;
 
     // 移除让位效果 + 隐藏插入条
-    $$('.tab[data-id]').forEach(t => t.classList.remove('push-left', 'push-right'));
+    $$('.tab[data-id]').forEach(t => t.classList.remove('push-left', 'push-right', 'is-dragging'));
     hideBar('category');
 
+    // 仅真实重排时才缩小占位 + 延迟；纯点击立即重渲染
+    if (willReorder && el) el.classList.add('shrink-placeholder');
+
     setTimeout(() => {
-      if (el && insertIdx !== null && insertIdx !== idx) {
+      if (willReorder && el) {
+        // 按「大类块（大类+其子类）」整体移动
         const srcId = +el.dataset.id;
-        const srcIdx = categories.findIndex(c => c.id === srcId);
-        if (srcIdx >= 0) {
-          let dstIdx = insertIdx;
-          if (dstIdx > srcIdx) dstIdx--;
-          const [moved] = categories.splice(srcIdx, 1);
-          categories.splice(Math.max(0, Math.min(dstIdx, categories.length)), 0, moved);
+        const fixedBigs = categories.filter(c => c.parentId == null && c.fixed);
+        const movableBigs = categories.filter(c => c.parentId == null && !c.fixed);
+        const srcMovable = movableBigs.findIndex(c => c.id === srcId);
+        if (srcMovable >= 0) {
+          const movableBlocks = movableBigs.map(b => ({ cat: b, subs: categories.filter(c => c.parentId === b.id) }));
+          const [moved] = movableBlocks.splice(srcMovable, 1);
+          let dstMovable = insertIdx - fixedBigs.length;
+          if (dstMovable > srcMovable) dstMovable--;
+          dstMovable = Math.max(0, Math.min(dstMovable, movableBlocks.length));
+          movableBlocks.splice(dstMovable, 0, moved);
+          categories = [...fixedBigs, ...movableBlocks.flatMap(bl => [bl.cat, ...bl.subs])];
           Storage.set("categories", categories);
         }
       }
       renderTabs();
-    }, 350);
+    }, willReorder ? 350 : 0);
   });
 }
 
@@ -713,8 +852,9 @@ function updateCatDragPosition(mouseX, mouseY) {
 
   let insertIdx = updateInsertBar(tabs, mouseX, mouseY, 'category', _catDrag.idx);
 
-  const firstFixedIdx = categories.findIndex(c => c.fixed);
-  if (firstFixedIdx >= 0 && insertIdx <= firstFixedIdx) insertIdx = firstFixedIdx + 1;
+  // 固定大类（收藏/未分类）始终在最前，插入点不能落到它们之前
+  const fixedCount = categories.filter(c => c.parentId == null && c.fixed).length;
+  if (insertIdx <= fixedCount) insertIdx = fixedCount;
 
   _catDrag.insertIdx = insertIdx;
 
@@ -722,6 +862,8 @@ function updateCatDragPosition(mouseX, mouseY) {
   if (!_catDrag.wasMoved && (Math.abs(mouseX - _catDrag.startX) > 5 || Math.abs(mouseY - _catDrag.startY) > 5)) {
     _catDrag.wasMoved = true;
   }
+  // 真实拖动时才让原 tab 变淡
+  if (_catDrag.wasMoved && _catDrag.el) _catDrag.el.classList.add('is-dragging');
 
   // 移动 ghost 跟随鼠标
   if (_catDrag.ghost) {
@@ -734,24 +876,33 @@ function updateCatDragPosition(mouseX, mouseY) {
 
 // ========== 分类编辑操作（删除/编辑）==========
 function bindCatEditActions() {
-  // 删除分类
+  // 删除分类（大类级联子类→标签入未分类；子类→标签降为父大类未分组）
   $$('.btn-cat-del').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
     const id = +b.dataset.id;
     const cat = categories.find(c => c.id === id);
-    const tagCount = tags.filter(t => t.categoryId === id).length;
-    let msg = `确定删除分类 "${cat?.name}" 吗？`;
-    if (tagCount > 0) msg += `\n该分类下有 ${tagCount} 个提示词，将一并删除。`;
+    if (!cat) return;
+    const isBig = cat.parentId == null;
+    const subIds = isBig ? categories.filter(c => c.parentId === id).map(c => c.id) : [];
+    const affected = isBig ? [id, ...subIds] : [id];
+    const tagCount = tags.filter(t => affected.includes(t.categoryId)).length;
+    let msg = `确定删除分类 "${cat.name}" 吗？`;
+    if (isBig && subIds.length) msg += `\n（含 ${subIds.length} 个子分类）`;
+    if (tagCount) msg += `\n该分类下有 ${tagCount} 个提示词，将${isBig ? "移入「未分类」" : "降为未分组"}。`;
     openConfirm(msg, () => {
-      tags = tags.filter(t => t.categoryId !== id);
-      categories = categories.filter(c => c.id !== id);
+      if (isBig) {
+        tags.forEach(t => { if (affected.includes(t.categoryId)) t.categoryId = UNCAT_ID; });
+      } else {
+        tags.forEach(t => { if (t.categoryId === id) t.categoryId = cat.parentId; });
+      }
+      categories = categories.filter(c => !affected.includes(c.id));
       Storage.set("tags", tags); Storage.set("categories", categories);
-      if (currentCatId === id) currentCatId = categories[0]?.id || FAV_CAT_ID;
+      if (affected.includes(currentCatId)) currentCatId = categories.find(c => c.parentId == null && !c.fixed)?.id || FAV_CAT_ID;
       renderTabs(); renderLibrary();
     });
   });
 
-  // 编辑分类
+  // 编辑大类名/图标
   $$('.btn-cat-edit').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
     const id = +b.dataset.id;
@@ -759,9 +910,54 @@ function bindCatEditActions() {
     if (!cat) return;
     const name = prompt("修改分类名称:", cat.name);
     if (name && name.trim()) cat.name = name.trim();
-    const icon = prompt("修改图标（粘贴图标编号或 emoji）:", cat.icon);
+    const icon = prompt("修改图标（emoji）:", cat.icon);
     if (icon && icon.trim()) cat.icon = icon.trim();
-    Storage.set("categories", categories); renderTabs();
+    Storage.set("categories", categories); renderTabs(); renderLibrary();
+  });
+
+  // 加子类
+  $$('.btn-cat-add-sub').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const parentId = +b.dataset.id;
+    const name = prompt("子分类名称:");
+    if (!name || !name.trim()) return;
+    const icon = prompt("图标（emoji，默认📁）:") || "📁";
+    categories.push({ id: nextId++, parentId, name: name.trim(), icon: icon.trim() });
+    Storage.set("categories", categories); renderTabs(); renderLibrary();
+  });
+}
+
+// 子类标题上的改名/删除（编辑模式下显示）
+function bindSubcatActions() {
+  $$('.btn-sub-collapse').forEach(b => b.onclick = (e) => { e.stopPropagation(); toggleSubcatCollapse(+b.dataset.id); });
+  $$('.btn-sub-up').forEach(b => b.onclick = (e) => { e.stopPropagation(); moveSubcat(+b.dataset.id, -1); });
+  $$('.btn-sub-down').forEach(b => b.onclick = (e) => { e.stopPropagation(); moveSubcat(+b.dataset.id, 1); });
+  $$('.btn-sub-pin').forEach(b => b.onclick = (e) => { e.stopPropagation(); togglePinUngrouped(+b.dataset.id); });
+  $$('.btn-sub-edit').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const id = +b.dataset.id;
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+    const name = prompt("修改子分类名称:", cat.name);
+    if (name && name.trim()) cat.name = name.trim();
+    const icon = prompt("修改图标（emoji）:", cat.icon);
+    if (icon && icon.trim()) cat.icon = icon.trim();
+    Storage.set("categories", categories); renderLibrary();
+  });
+  $$('.btn-sub-del').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    const id = +b.dataset.id;
+    const cat = categories.find(c => c.id === id);
+    if (!cat) return;
+    const tagCount = tags.filter(t => t.categoryId === id).length;
+    let msg = `确定删除子分类 "${cat.name}" 吗？`;
+    if (tagCount) msg += `\n其下 ${tagCount} 个提示词将降为未分组。`;
+    openConfirm(msg, () => {
+      tags.forEach(t => { if (t.categoryId === id) t.categoryId = cat.parentId; });
+      categories = categories.filter(c => c.id !== id);
+      Storage.set("tags", tags); Storage.set("categories", categories);
+      renderTabs(); renderLibrary();
+    });
   });
 }
 
@@ -790,7 +986,7 @@ function bindCardEvents() {
     e.stopPropagation();
     const tag = tags.find(t => t.id === +b.dataset.id);
     openConfirm(`确定删除 "${tag?.cn}" 吗？`, () => {
-      tags = tags.filter(t => t.id !== +b.dataset.id); Storage.set("tags", tags); renderLibrary();
+      tags = tags.filter(t => t.id !== +b.dataset.id); Storage.set("tags", tags); invalidateEmbedding(+b.dataset.id); renderLibrary();
       if (tag) { pushUndo({ type: 'tag-delete', data: tag }); showUndoToast(`已删除「${tag.cn}」`); }
     });
   });
@@ -822,36 +1018,50 @@ function initLibDragListeners() {
     if (_libDrag.ghost) { _libDrag.ghost.remove(); _libDrag.ghost = null; }
 
     if (libEditMode) {
-      // 编辑模式：拖拽排序（不向画布添加）
-      if (_libDrag.el) _libDrag.el.classList.add('shrink-placeholder');
+      // 编辑模式：拖拽排序或跨组移动
       const idx = _libDrag.idx;
       const insertIdx = _libDrag.insertIdx;
-      _libDrag.el = null; _libDrag.idx = null; _libDrag.insertIdx = null;
+      const wasMoved = _libDrag.wasMoved;
+      const el = _libDrag.el;
+      const dropX = _libDrag.latestX, dropY = _libDrag.latestY;
+      _libDrag.el = null; _libDrag.idx = null; _libDrag.insertIdx = null; _libDrag.wasMoved = false;
 
-      $$('.tag-card[data-id]').forEach(c => c.classList.remove('push-left', 'push-right'));
+      $$('.tag-card[data-id]').forEach(c => c.classList.remove('push-left', 'push-right', 'is-dragging'));
       hideBar('library');
 
+      // 判定落点所属分组（用于跨组移动 categoryId）
+      let targetGroupId = null;
+      if (wasMoved) {
+        const gp = document.elementFromPoint(dropX, dropY)?.closest('.subcat-group[data-group-id]');
+        if (gp) targetGroupId = +gp.dataset.groupId;
+      }
+      const draggedTag = dragFromLibrary != null ? tags.find(t => t.id === dragFromLibrary) : null;
+      const crossGroup = wasMoved && draggedTag && targetGroupId != null && targetGroupId !== draggedTag.categoryId;
+      const willReorder = wasMoved && !crossGroup && insertIdx !== null && insertIdx !== idx;
+      const changed = crossGroup || willReorder;
+
+      if (changed && el) el.classList.add('shrink-placeholder');
+
       setTimeout(() => {
-        if (insertIdx !== null && insertIdx !== idx) {
-          const kw = $("#search-input").value.trim().toLowerCase();
-          let viewList;
-          if (currentCatId === FAV_CAT_ID) {
-            viewList = tags.filter(t => t.favorited && (!kw || fuzzyMatch(t.cn, kw)));
-          } else {
-            viewList = tags.filter(t => t.categoryId === currentCatId && (!kw || fuzzyMatch(t.cn, kw)));
-          }
+        if (crossGroup && draggedTag) {
+          draggedTag.categoryId = targetGroupId;
+          Storage.set("tags", tags);
+        } else if (willReorder) {
+          // 同组重排：按当前渲染顺序（DOM）取视图标签
+          const viewIds = [...$$('#tag-grid .tag-card[data-id]')].map(c => +c.dataset.id);
+          const viewList = viewIds.map(id => tags.find(t => t.id === id)).filter(Boolean);
           let dstIdx = insertIdx;
           let srcIdx = idx;
           if (dstIdx > srcIdx) dstIdx--;
           const [moved] = viewList.splice(srcIdx, 1);
           viewList.splice(Math.max(0, Math.min(dstIdx, viewList.length)), 0, moved);
-          const viewIds = new Set(viewList.map(t => t.id));
-          tags = [...tags.filter(t => !viewIds.has(t.id)), ...viewList];
+          const viewIdSet = new Set(viewList.map(t => t.id));
+          tags = [...tags.filter(t => !viewIdSet.has(t.id)), ...viewList];
           Storage.set("tags", tags);
         }
         renderLibrary();
         dragFromLibrary = null;
-      }, 350);
+      }, changed ? 350 : 0);
     } else {
       // 非编辑模式：拖到画布加入，否则无操作
       if (_libDrag.el) _libDrag.el.classList.remove('is-dragging');
@@ -885,6 +1095,8 @@ function updateLibDragPosition(mouseX, mouseY) {
   if (!_libDrag.wasMoved && (Math.abs(mouseX - _libDrag.startX) > 5 || Math.abs(mouseY - _libDrag.startY) > 5)) {
     _libDrag.wasMoved = true;
   }
+  // 真实拖动时才让原卡片变淡
+  if (_libDrag.wasMoved && _libDrag.el) _libDrag.el.classList.add('is-dragging');
 
   // 移动 ghost 跟随鼠标
   if (_libDrag.ghost) {
@@ -1077,7 +1289,7 @@ function switchMode(mode) {
   $("#btn-paint").classList.toggle("active", mode === "paint");
   $("#btn-parse-mode").classList.toggle("active", mode === "parse");
   $("#paint-mode").classList.toggle("hidden", mode !== "paint");
-  $("#parse-mode").classList.toggle("hidden", mode === "paint");
+  $("#parse-mode").classList.toggle("hidden", mode !== "parse");
   if (mode === "parse") doParse();
 }
 
@@ -1231,120 +1443,99 @@ function openConfirm(msg, fn) {
 function closeModals() { $$('.modal').forEach(m => m.classList.add("hidden")); }
 
 let editingTagId = null;
+// 取 categoryId 所属的大类 id（自身即大类则返回自身）
+function parentBigOf(catId) {
+  const c = categories.find(x => x.id === catId);
+  if (!c) return null;
+  return c.parentId == null ? c.id : c.parentId;
+}
+function firstBigId() {
+  return categories.find(c => c.parentId == null && !c.fixed)?.id || UNCAT_ID;
+}
 function openTagModal(handwrite, id) {
   editingTagId = id || null;
   $("#tag-modal-title").textContent = id ? "编辑提示词" : "添加提示词";
   const t = id ? tags.find(x => x.id === id) : null;
   $("#input-cn").value = t?.cn || "";
   $("#input-en").value = t?.en || "";
+  // 子类选择：编辑时取标签所属大类，新增时取当前 tab 的大类
+  const bigId = id ? (parentBigOf(t.categoryId) ?? firstBigId()) : (currentCatId === FAV_CAT_ID ? firstBigId() : (parentBigOf(currentCatId) ?? currentCatId));
+  const big = categories.find(c => c.id === bigId);
+  const sel = $("#input-subcat");
+  const wrap = $("#input-subcat-wrap");
+  if (big && big.parentId == null) {
+    const subs = categories.filter(c => c.parentId === big.id);
+    sel.innerHTML = `<option value="${big.id}">未分组</option>` + subs.map(s => `<option value="${s.id}">${s.icon} ${s.name}</option>`).join("");
+    sel.value = String(id ? t.categoryId : big.id);
+    wrap.classList.remove("hidden");
+  } else {
+    wrap.classList.add("hidden");
+  }
   $("#modal-tag").classList.remove("hidden");
 }
 function confirmTag() {
   const cn = $("#input-cn").value.trim();
   if (!cn) return alert("不能为空");
   const en = $("#input-en").value.trim() || undefined;
+  const sel = $("#input-subcat");
+  const subcatVal = $("#input-subcat-wrap").classList.contains("hidden") ? null : +sel.value;
   if (editingTagId) {
     const t = tags.find(x => x.id === editingTagId);
-    if (t) { t.cn = cn; t.en = en; }
+    if (t) { t.cn = cn; t.en = en; if (subcatVal) t.categoryId = subcatVal; invalidateEmbedding(t.id); }
   } else {
-    const catId = currentCatId === FAV_CAT_ID
-      ? (categories.find(c => c.id !== FAV_CAT_ID)?.id || FAV_CAT_ID)
-      : currentCatId;
+    let catId;
+    if (subcatVal) catId = subcatVal;
+    else if (currentCatId === FAV_CAT_ID) catId = firstBigId();
+    else catId = currentCatId;
     tags.push({ id: nextId++, categoryId: catId, cn, en });
   }
   Storage.set("tags", tags); renderTabs(); renderLibrary(); closeModals();
 }
 function openAddCategory() {
-  const name = prompt("分类名称:"); if (!name) return;
-  const icon = prompt("图标（粘贴图标编号或 emoji，默认📁）:") || "📁";
-  categories.push({ id: nextId++, name, icon });
+  const name = prompt("大类名称:"); if (!name) return;
+  const icon = prompt("图标（emoji，默认📁）:") || "📁";
+  categories.push({ id: nextId++, parentId: null, name: name.trim(), icon: icon.trim() });
   Storage.set("categories", categories); renderTabs();
 }
 
 // ========== 炸开解析 ==========
 const PLACEHOLDER_HTML = '<span class="prompt-placeholder">拆分后的标签将在这里显示...</span>';
 
+// 拆分规则设置弹窗
+function openSplitSettings() {
+  const current = Storage.get("promptForge.splitDelimiters", [",", "，"]);
+  const custom = current.filter(d => d !== "," && d !== "，");
+  $("#split-delim-input").value = custom.join("\n");
+  $("#modal-split-settings").classList.remove("hidden");
+}
+function saveSplitRules() {
+  const raw = $("#split-delim-input").value.trim();
+  const list = raw ? raw.split("\n").map(s => s.trim()).filter(Boolean) : [];
+  list.unshift("，", ",");
+  Storage.set("promptForge.splitDelimiters", [...new Set(list)]);
+  closeModals();
+}
+
+// 共享规则拆分：按自定义分隔符列表拆分文本
+function splitPrompt(text, delimiters) {
+  if (!text || !Array.isArray(delimiters) || !delimiters.length) return [];
+  const escaped = delimiters.map(d => d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  escaped.push(',', '，', '\\s');
+  const re = new RegExp(`[${escaped.join('')}]+`);
+  return [...new Set(text.split(re).map(s => s.trim()).filter(Boolean))];
+}
+
 function doParse() {
   const text = $("#parse-input").value.trim();
-  if (!text) { $("#parse-result").innerHTML = PLACEHOLDER_HTML; return; }
+  if (!text) { _parseAtoms = []; $("#parse-result").innerHTML = PLACEHOLDER_HTML; $("#parse-stats").textContent = ""; return; }
 
-  const byComma = $("#opt-comma").checked, bySpace = $("#opt-space").checked;
-  let parts = [text];
-  if (byComma && bySpace) {
-    // 同时按逗号和空格切分
-    parts = text.split(/[,，\s]+/).filter(Boolean);
-  } else if (byComma) {
-    parts = text.split(/[,，]/).map(s => s.trim()).filter(Boolean);
-  } else if (bySpace) {
-    parts = text.split(/\s+/).filter(Boolean);
-  }
-  // 去重
-  parts = [...new Set(parts)];
-
-  const el = $("#parse-result");
-  el.innerHTML = parts.map(p => {
-    const exist = tags.find(t => t.cn === p);
-    return `<div class="tag-card ${exist ? 'existing' : ''}" data-text="${p}">
-      <span class="cn">${p}</span><span style="font-size:11px;color:#94a3b8;margin-left:4px">${exist ? "已有" : ""}</span>
-    </div>`;
-  }).join("");
-
-  $$('#parse-result .tag-card:not(.existing)').forEach(card => {
-    card.onclick = (e) => {
-      // 点击选择器本身时不干涉，让用户选择分类
-      if (e.target.closest("select")) return;
-      // 清除已有的分类选择器，避免重复
-      const oldSel = card.querySelector("select");
-      if (oldSel) oldSel.remove();
-      card.classList.toggle("selected");
-      if (card.classList.contains("selected")) {
-        const sel = document.createElement("select");
-        sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:4px 8px;font-size:12px;width:100%;";
-        sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
-        sel.onchange = () => {
-          tags.push({ id: nextId++, categoryId: +sel.value, cn: card.dataset.text });
-          Storage.set("tags", tags);
-          card.classList.remove("selected"); card.classList.add("existing");
-          card.lastChild.textContent = "已入库"; sel.remove();
-        };
-        card.appendChild(sel);
-      }
-    };
-  });
+  const delimiters = Storage.get("promptForge.splitDelimiters", [",", "，"]);
+  _parseAtoms = splitPrompt(text, delimiters).map(s => ({ cn: s }));
+  _parseAtoms.forEach(a => { a.match = matchAtom(a, tags); });
+  renderParseResult();
 }
 
-// ========== 导出 JSON / 导入 CSV ==========
-// 导出用 JSON：保留完整数据结构，适合备份迁移
-// 导入用 CSV：固定模板，适合批量添加标签
-// CSV 列: 分类名称, 分类图标, 中文, 英文, 收藏(是/否)
-const CSV_COLS = ['分类名称', '分类图标', '中文', '英文', '收藏'];
-
-function csvEscape(val) {
-  const s = val == null ? '' : String(val);
-  return /[,"\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-function csvParseLine(line) {
-  const result = [];
-  let cur = '', inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (inQ) {
-      if (ch === '"') {
-        if (i + 1 < line.length && line[i + 1] === '"') { cur += '"'; i++; }
-        else inQ = false;
-      } else cur += ch;
-    } else {
-      if (ch === '"') inQ = true;
-      else if (ch === ',') { result.push(cur); cur = ''; }
-      else cur += ch;
-    }
-  }
-  result.push(cur);
-  return result;
-}
-
-// ========== OpenAI API 调用工具 ==========
+// ========== 数据导出/导入（统一 JSON 格式）==========
 async function callOpenAI(messages, options = {}) {
   const { model: optModel, onStream } = options;
   const cfg = getActiveConfig();
@@ -1415,64 +1606,291 @@ async function callOpenAI(messages, options = {}) {
 async function doAIParse() {
   const text = $("#parse-input").value.trim();
   if (!text) return alert("请先输入提示词");
+  // AI 拆分前取消 pending 的规则拆分 debounce，避免结果被覆盖
+  if (typeof window._cancelParseDebounce === "function") window._cancelParseDebounce();
   const loading = $("#ai-loading");
   const btn = $("#btn-ai-parse");
   loading.classList.remove("hidden");
   btn.classList.add("loading");
   try {
+    const bigCats = categories.filter(c => c.parentId == null && !c.fixed);
+    const catNames = bigCats.map(c => c.name).join("、");
     const { content, error } = await callOpenAI([
-      { role: "system", content: "你是一个提示词分析助手。将用户的提示词文本拆解为语义独立的标签词。\n要求：\n1. 每个标签是一个独立的语义单元\n2. 返回 JSON 格式：{ \"tags\": [{ \"cn\": \"...\", \"en\": \"...\" }] }\n3. 标签数量 3-15 个\n4. 去除重复和无意义的通用词" },
+      { role: "system", content: `你是一个提示词分析助手。将用户的提示词文本拆解为语义独立的标签词，并标注各标签所属大类。
+要求：
+1. 每个标签是一个独立的语义单元
+2. 返回 JSON 格式：{ "tags": [{ "cn": "...", "en": "...", "category": "大类名" }] }
+3. 去除重复和无意义的通用词
+4. category 必须是以下之一：${catNames}` },
       { role: "user", content: text },
     ], { model: apiConfig.model });
     if (error) { alert("AI 解析失败: " + error); return; }
-    // 解析 JSON 响应
+    // 解析 JSON 响应——先尝试直接 parse，再尝试提取代码块，最后贪婪匹配最外层 {}
     let parsed;
     try {
-      // 尝试提取 JSON（可能被 markdown 代码块包裹）
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || content.match(/{[\s\S]*?}/);
-      const jsonStr = jsonMatch ? jsonMatch[1] || jsonMatch[0] : content;
-      parsed = JSON.parse(jsonStr.trim());
+      parsed = JSON.parse(content.trim());
     } catch {
-      parsed = { tags: [] };
+      try {
+        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+        const jsonStr = jsonMatch ? jsonMatch[1].trim() : null;
+        if (jsonStr) parsed = JSON.parse(jsonStr);
+        else {
+          const outer = content.match(/\{[\s\S]*\}/);
+          parsed = outer ? JSON.parse(outer[0].trim()) : { tags: [] };
+        }
+      } catch {
+        parsed = { tags: [] };
+      }
     }
     const list = (parsed.tags || []).filter(t => t.cn);
     if (!list.length) { alert("AI 未能解析出标签，请重试"); return; }
-    // 渲染到结果区（复用现有卡片样式）
-    const el = $("#parse-result");
-    el.innerHTML = list.map(t => {
-      const exist = tags.find(x => x.cn === t.cn);
-      return `<div class="tag-card ${exist ? 'existing' : ''}" data-text="${t.cn}">
-        <span class="cn">${t.cn}</span>${t.en ? `<span style="font-size:11px;color:#94a3b8;margin-left:4px">${t.en}</span>` : ''}
-        <span style="font-size:11px;color:#94a3b8;margin-left:4px">${exist ? "已有" : ""}</span>
-      </div>`;
-    }).join("");
-    // 绑定分类选择（复现 doParse 中的逻辑）
-    $$('#parse-result .tag-card:not(.existing)').forEach(card => {
-      card.onclick = (e) => {
-        // 点击选择器本身时不干涉，让用户选择分类
-        if (e.target.closest("select")) return;
-        // 清除已有的分类选择器，避免重复
-        const oldSel = card.querySelector("select");
-        if (oldSel) oldSel.remove();
-        card.classList.toggle("selected");
-        if (card.classList.contains("selected")) {
-          const sel = document.createElement("select");
-          sel.style.cssText = "margin-top:2px;background:var(--bg);border:1px solid var(--accent);border-radius:var(--radius);color:var(--text);padding:4px 8px;font-size:12px;width:100%;";
-          sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
-          sel.onchange = () => {
-            tags.push({ id: nextId++, categoryId: +sel.value, cn: card.dataset.text });
-            Storage.set("tags", tags);
-            card.classList.remove("selected"); card.classList.add("existing");
-            card.lastChild.textContent = "已入库"; sel.remove();
-          };
-          card.appendChild(sel);
-        }
-      };
+    // 补大类 id
+    list.forEach(a => {
+      a._bigId = (categories.filter(c => c.parentId == null && !c.fixed).find(c => c.name === a.category)?.id) || UNCAT_ID;
     });
+    _parseAtoms = list;
+    _parseAtoms.forEach(a => { a.match = matchAtom(a, tags); });
+    // 自动向量匹配（静默跳过失败，不阻断后续）
+    if (supportsEmbedding() && getActiveConfig()?.key) {
+      loading.textContent = "AI 语义匹配中…";
+      const sync = await syncEmbeddingCache();
+      if (!sync.error) {
+        const pending = _parseAtoms.filter(a => a.match.status !== "EXACT");
+        if (pending.length) {
+          const { vectors, error: embErr } = await callEmbedding(pending.map(a => a.cn || a.en));
+          if (!embErr) {
+            pending.forEach((a, i) => {
+              if (!vectors[i]) return;
+              const scored = tags.filter(t => embCache[t.id]).map(t => ({ t, sim: cosineSim(vectors[i], embCache[t.id]) })).sort((x, y) => y.sim - x.sim);
+              const best = scored[0];
+              if (best && best.sim >= EMB_THRESHOLD) a.match = { status: "SIMILAR", matched: null, candidates: scored.slice(0, 5).map(s => s.t), sim: best.sim };
+            });
+          }
+        }
+      }
+    }
+    renderParseResult();
   } finally {
+    loading.textContent = "AI 解析中…";
     loading.classList.add("hidden");
     btn.classList.remove("loading");
   }
+}
+
+// ========== 提示词匹配分析（炸开模式内：拆分后与词库匹配着色）==========
+const EMB_KEY = "promptForge.embeddings";
+const EMB_THRESHOLD = 0.75;
+const STATUS_LABEL = { EXACT: "已有", CONTAINS: "近似", SIMILAR: "相似", NEW: "新词" };
+let embCache = Storage.get(EMB_KEY, {});
+let _parseAtoms = [];
+
+// 规则匹配：EXACT（完全相等）/ CONTAINS（互为包含）/ NEW（无匹配）
+function matchAtom(atom, library) {
+  const aCn = (atom.cn || "").toLowerCase().trim();
+  const aEn = (atom.en || "").toLowerCase().trim();
+  if (!aCn && !aEn) return { status: "NEW", matched: null, candidates: [] };
+  const norm = t => ({ cn: (t.cn || "").toLowerCase().trim(), en: (t.en || "").toLowerCase().trim() });
+  // EXACT：cn/en 任一字段完全相等（跨语言也算）
+  const exact = library.find(t => {
+    const n = norm(t);
+    return (n.cn && (n.cn === aCn || n.cn === aEn)) || (n.en && (n.en === aEn || n.en === aCn));
+  });
+  if (exact) return { status: "EXACT", matched: exact, candidates: [exact] };
+  // CONTAINS：互为包含
+  const contains = library.filter(t => {
+    const n = norm(t);
+    const pairs = [[n.cn, aCn], [n.en, aEn], [n.cn, aEn], [n.en, aCn]];
+    return pairs.some(([x, y]) => x && y && (x.includes(y) || y.includes(x)));
+  });
+  if (contains.length) return { status: "CONTAINS", matched: null, candidates: contains };
+  return { status: "NEW", matched: null, candidates: [] };
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+// 渲染当前 _parseAtoms 到 #parse-result，按匹配状态着色 + 统计 + 大类徽标 + 批次条
+function renderParseResult() {
+  const counts = { EXACT: 0, CONTAINS: 0, SIMILAR: 0, NEW: 0 };
+  _parseAtoms.forEach(a => counts[a.match.status]++);
+  const total = _parseAtoms.length;
+  $("#parse-stats").innerHTML = total
+    ? `共 ${total} 个：<span class="st-exact">已有 ${counts.EXACT}</span> · <span class="st-similar">相似 ${counts.SIMILAR}</span> · <span class="st-contains">近似 ${counts.CONTAINS}</span> · <span class="st-new">新词 ${counts.NEW}</span>`
+    : "";
+  $("#parse-result").innerHTML = total ? _parseAtoms.map((a, i) => {
+    const m = a.match;
+    const simTxt = m.sim ? ` ${(m.sim * 100).toFixed(0)}%` : "";
+    // 大类徽标：仅 AI 拆分时有 _bigId
+    const catBadge = a._bigId ? (() => { const c = categories.find(x => x.id === a._bigId); return c ? `<span class="cat-badge">${c.icon}</span>` : ""; })() : "";
+    return `<div class="tag-card ${m.status.toLowerCase()}" data-idx="${i}" data-text="${escapeHtml(a.cn)}"${a.en ? ` data-en="${escapeHtml(a.en)}"` : ""}>
+      ${catBadge}<span class="cn">${escapeHtml(a.cn)}</span>${a.en ? `<span class="en">${escapeHtml(a.en)}</span>` : ""}
+      <span class="badge">${STATUS_LABEL[m.status]}${simTxt}</span>
+    </div>`;
+  }).join("") : PLACEHOLDER_HTML;
+
+  // 批次条：可入库数量
+  const addable = _parseAtoms.filter(a => a.match.status !== "EXACT");
+  const bar = $("#parse-batch-bar");
+  const info = $("#parse-batch-info");
+  const btn = $("#btn-parse-batch-add");
+  if (addable.length) {
+    bar.classList.remove("hidden");
+    info.textContent = `可入库 ${addable.length} 个（已有 ${counts.EXACT} 个已存在）`;
+    btn.onclick = () => {
+      addable.forEach(a => {
+        tags.push({ id: nextId++, categoryId: a._bigId || currentCatId, cn: a.cn, en: a.en });
+      });
+      Storage.set("tags", tags);
+      bar.classList.add("hidden");
+      renderTabs(); renderLibrary();
+      // 重新匹配已入库的 atom
+      _parseAtoms.forEach(a => { a.match = matchAtom(a, tags); });
+      renderParseResult();
+    };
+  } else {
+    bar.classList.add("hidden");
+  }
+}
+
+// 向量余弦相似度
+function cosineSim(a, b) {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) { dot += a[i] * b[i]; na += a[i] * a[i]; nb += b[i] * b[i]; }
+  if (!na || !nb) return 0;
+  return dot / (Math.sqrt(na) * Math.sqrt(nb));
+}
+
+// 各服务商对应的 embedding 模型（未列出的不支持向量匹配）
+const EMBEDDING_MODELS = {
+  openai: "text-embedding-3-small",
+  siliconflow: "BAAI/bge-m3",
+  alibaba: "text-embedding-v3",
+  zhipu: "embedding-3",
+  openrouter: "openai/text-embedding-3-small",
+};
+function supportsEmbedding() { return !!EMBEDDING_MODELS[getActiveConfig()?.provider]; }
+
+// 调 /embeddings 接口，批量返回向量
+async function callEmbedding(texts) {
+  const cfg = getActiveConfig();
+  if (!cfg || !cfg.key) return { vectors: [], error: "NO_KEY" };
+  const embModel = EMBEDDING_MODELS[cfg.provider];
+  if (!embModel) return { vectors: [], error: "NO_EMBEDDING" };
+  const provider = API_PROVIDERS[cfg.provider] || API_PROVIDERS.openai;
+  const baseURL = (cfg.provider === "custom" ? (cfg.baseURL || "") : (provider.baseURL || "")).replace(/\/$/, "");
+  if (!baseURL) return { vectors: [], error: "NO_BASEURL" };
+  const headers = { "Content-Type": "application/json" };
+  if (provider.authType === "api-key") headers[provider.header || "Authorization"] = cfg.key;
+  else headers[provider.header || "Authorization"] = `Bearer ${cfg.key}`;
+  try {
+    const res = await fetch(`${baseURL}/embeddings`, {
+      method: "POST", headers, body: JSON.stringify({ model: embModel, input: texts }),
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); return { vectors: [], error: e.error?.message || `HTTP ${res.status}` }; }
+    const json = await res.json();
+    const vectors = (json.data || []).sort((a, b) => a.index - b.index).map(d => d.embedding);
+    return { vectors, error: null };
+  } catch (err) {
+    return { vectors: [], error: err.message };
+  }
+}
+
+// 让词库向量缓存与当前 tags 同步：补算缺失的、清理已删除的
+async function syncEmbeddingCache() {
+  const liveIds = new Set(tags.map(t => t.id));
+  Object.keys(embCache).forEach(id => { if (!liveIds.has(+id)) delete embCache[+id]; });
+  const missing = tags.filter(t => !embCache[t.id]);
+  if (missing.length) {
+    const { vectors, error } = await callEmbedding(missing.map(t => t.cn || t.en));
+    if (error) return { error };
+    missing.forEach((t, i) => { if (vectors[i]) embCache[t.id] = vectors[i]; });
+    Storage.set(EMB_KEY, embCache);
+  }
+  return { error: null };
+}
+
+function invalidateEmbedding(tagId) {
+  if (embCache[tagId]) { delete embCache[tagId]; Storage.set(EMB_KEY, embCache); }
+}
+
+// AI 向量匹配：对当前拆分结果中非 EXACT 的标签找语义相似的库内标签（按钮触发，避免输入即调 API）
+async function doAIMatch() {
+  if (!_parseAtoms.length) return alert("请先拆分提示词");
+  if (!supportsEmbedding()) return alert("当前服务商不支持向量匹配（支持：OpenAI / 硅基流动 / 阿里云 / 智谱 / OpenRouter）");
+  if (!getActiveConfig()?.key) return alert("请先在设置中配置 API 密钥 🔑");
+  const loading = $("#ai-loading");
+  loading.classList.remove("hidden");
+  try {
+    const sync = await syncEmbeddingCache();
+    if (sync.error) { alert("向量匹配失败：" + sync.error); return; }
+    const pending = _parseAtoms.filter(a => a.match.status !== "EXACT");
+    if (pending.length) {
+      const { vectors, error } = await callEmbedding(pending.map(a => a.cn || a.en));
+      if (error) { alert("向量匹配失败：" + error); return; }
+      pending.forEach((a, i) => {
+        if (!vectors[i]) return;
+        const scored = tags
+          .filter(t => embCache[t.id])
+          .map(t => ({ t, sim: cosineSim(vectors[i], embCache[t.id]) }))
+          .sort((x, y) => y.sim - x.sim);
+        const best = scored[0];
+        if (best && best.sim >= EMB_THRESHOLD) {
+          a.match = { status: "SIMILAR", matched: null, candidates: scored.slice(0, 5).map(s => s.t), sim: best.sim };
+        }
+      });
+    }
+    renderParseResult();
+  } finally {
+    loading.classList.add("hidden");
+  }
+}
+
+// 点击拆分卡片 → 弹出候选/相似列表 + 入库
+function onParseCardClick(idx) {
+  const a = _parseAtoms[idx];
+  if (!a) return;
+  const m = a.match;
+  const list = m.candidates || [];
+  $("#similar-title").textContent = m.status === "EXACT" ? `已存在：${a.cn}` : `「${a.cn}」的候选标签`;
+  const ul = $("#similar-list");
+  if (!list.length) { ul.innerHTML = '<li class="similar-empty">无候选标签</li>'; }
+  else {
+    ul.innerHTML = list.map(t => {
+      const cat = categories.find(c => c.id === t.categoryId);
+      const sim = m.sim && m.candidates[0] === t ? ` <span class="sim">${(m.sim * 100).toFixed(0)}%</span>` : "";
+      return `<li data-tag-id="${t.id}">
+        <span class="cn">${escapeHtml(t.cn)}</span>${t.en ? `<span class="en">${escapeHtml(t.en)}</span>` : ""}
+        <span class="cat">${cat ? cat.icon + " " + cat.name : ""}</span>${sim}
+      </li>`;
+    }).join("");
+  }
+  const addBtn = $("#btn-similar-add");
+  if (m.status === "EXACT") { addBtn.classList.add("hidden"); }
+  else {
+    addBtn.classList.remove("hidden");
+    addBtn.onclick = () => addAtomFromParse(idx);
+  }
+  $("#modal-similar").classList.remove("hidden");
+}
+
+// 把当前拆分标签加入词库（弹窗内选分类）
+function addAtomFromParse(idx) {
+  const a = _parseAtoms[idx];
+  if (!a) return;
+  const sel = $("#similar-cat-select");
+  sel.classList.remove("hidden");
+  sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
+  sel.onchange = () => {
+    const added = { id: nextId++, categoryId: +sel.value, cn: a.cn, en: a.en };
+    tags.push(added);
+    Storage.set("tags", tags);
+    sel.classList.add("hidden");
+    closeModals();
+    a.match = { status: "EXACT", matched: added, candidates: [added] };
+    renderTabs(); renderLibrary(); renderParseResult();
+  };
+  sel.focus();
 }
 
 // ========== 图片反推 ==========
@@ -1482,15 +1900,27 @@ function handleImageUpload(file) {
   if (!file) return;
   const area = $("#image-upload-area");
   const preview = $("#image-preview");
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    _reverseImageData = e.target.result;
+  // 先压缩图片再转 base64，避免上传超大原始图
+  const img = new Image();
+  img.onload = () => {
+    const MAX = 1024; // 最长边不超过 1024px
+    let w = img.naturalWidth, h = img.naturalHeight;
+    if (w > MAX || h > MAX) {
+      const ratio = Math.min(MAX / w, MAX / h);
+      w = Math.round(w * ratio);
+      h = Math.round(h * ratio);
+    }
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(img, 0, 0, w, h);
+    _reverseImageData = c.toDataURL("image/jpeg", 0.85);
     preview.src = _reverseImageData;
     preview.classList.remove("hidden");
     area.querySelector(".image-upload-hint")?.classList.add("hidden");
     area.style.padding = "8px";
   };
-  reader.readAsDataURL(file);
+  img.src = URL.createObjectURL(file);
 }
 
 async function doReversePrompt() {
@@ -1509,11 +1939,14 @@ async function doReversePrompt() {
     const { content, error } = await callOpenAI([
       { role: "system", content: "你是一个提示词反推专家。根据用户提供的图片，分析其风格、主体、光影、色彩、构图等要素，生成一个完整的提示词。" },
       { role: "user", content: [
-        { type: "image_url", image_url: { url: _reverseImageData, detail: "high" } },
+        { type: "image_url", image_url: { url: _reverseImageData } },
         { type: "text", text: "请反推这张图片的提示词" },
       ]},
     ], { model: apiConfig.model });
-    if (error) { resultEl.value = "❌ " + error; return; }
+    if (error) {
+      resultEl.value = `❌ 反推失败\n\n当前配置：${provider.name} / ${apiConfig.model}\nAPI 地址：${(apiConfig.baseURL || provider.baseURL || "默认")}\n\n错误详情：${error}\n\n提示：如果您的 API 不支持图片识别，请切换到支持 Vision 的模型（如 gpt-4o / gpt-4o-mini）或 OpenAI 官方 API。`;
+      return;
+    }
     resultEl.value = content;
   } finally {
     btn.textContent = "🤖 反推提示词";
@@ -1536,7 +1969,12 @@ function reverseToParse() {
 }
 
 function exportData() {
-  const data = { categories, tags, canvas: canvasTags };
+  const data = {
+    schemaVersion: SCHEMA_VERSION,
+    categories, tags,
+    canvas: canvasTags,
+    exportedAt: new Date().toISOString(),
+  };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -1544,124 +1982,80 @@ function exportData() {
   a.click();
 }
 
-// CSV 导入模版下载
+// 下载模版：根据当前分类实时生成
 function downloadTemplate() {
-  const rows = [CSV_COLS, ['风格', '🎨', '示例标签', 'example', '否'], ['光影', '💡', '', '', '']];
-  const csv = rows.map(row => row.map(csvEscape).join(',')).join('\n');
+  const tplCategories = categories.filter(c => c.id !== FAV_CAT_ID).map(c => ({ ...c }));
+  const tplTags = categories.filter(c => c.id !== FAV_CAT_ID).map((c, i) => ({
+    id: -(i + 1), categoryId: c.id, cn: `示例标签（${c.name}）`, en: `example tag (${c.name})`,
+  }));
+  const template = {
+    schemaVersion: SCHEMA_VERSION,
+    _说明: "将标签数据填入本文件，然后通过「导入数据」功能导入。分类会根据名称自动匹配或新建。",
+    categories: tplCategories,
+    tags: tplTags,
+    canvas: [],
+  };
+  const blob = new Blob([JSON.stringify(template, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: "text/csv;charset=utf-8" }));
-  a.download = "prompt-forge-导入模版.csv";
+  a.href = URL.createObjectURL(blob);
+  a.download = `prompt-forge-模版.json`;
   a.click();
 }
 
 function importData(e) {
   const f = e.target.files[0];
   if (!f) return;
-  // 按文件后缀分流
-  if (f.name.endsWith(".json")) {
-    importJSON(f);
-  } else {
-    importCSV(f);
-  }
-}
-
-// JSON 导入：完整数据恢复（导出功能的逆操作）
-function importJSON(f) {
   const r = new FileReader();
   r.onload = () => {
     try {
       const d = JSON.parse(r.result);
       if (!d || typeof d !== "object") throw new Error("格式错误");
-      if (d.categories) { categories = d.categories; Storage.set("categories", categories); }
-      if (d.tags) { tags = d.tags; Storage.set("tags", tags); }
-      if (d.canvas) { canvasTags = d.canvas; Storage.set("canvas", canvasTags); }
+      const idMap = {};
+
+      // 处理分类：按 (name + parentId) 匹配，新分类自动添加
+      if (Array.isArray(d.categories)) {
+        d.categories.forEach(c => {
+          if (c.id === FAV_CAT_ID || c.id === UNCAT_ID) return;
+          const existing = categories.find(x => x.name === c.name && x.parentId === c.parentId);
+          if (existing) {
+            idMap[c.id] = existing.id;
+          } else {
+            const newCat = { ...c, id: nextId++ };
+            delete newCat.fixed;
+            categories.push(newCat);
+            idMap[c.id] = newCat.id;
+          }
+        });
+        Storage.set("categories", categories);
+      }
+
+      // 处理标签：去重后追加
+      if (Array.isArray(d.tags)) {
+        const existingKeys = new Set(tags.map(t => `${t.categoryId}:${t.cn}`));
+        d.tags.forEach(t => {
+          const catId = idMap[t.categoryId] != null ? idMap[t.categoryId] : t.categoryId;
+          const key = `${catId}:${t.cn}`;
+          if (!existingKeys.has(key)) {
+            tags.push({ id: nextId++, categoryId: catId, cn: t.cn, en: t.en });
+            existingKeys.add(key);
+          }
+        });
+        Storage.set("tags", tags);
+      }
+
+      if (Array.isArray(d.canvas)) {
+        canvasTags = d.canvas.map(t => ({ cn: t.cn, en: t.en }));
+        Storage.set("canvas", canvasTags);
+      }
+
       location.reload();
     } catch (err) {
-      alert("JSON 导入失败: " + err.message);
+      alert("导入失败: " + err.message);
     }
   };
   r.readAsText(f, "UTF-8");
 }
-
-// CSV 导入：批量添加标签
-function importCSV(f) {
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const raw = r.result;
-      // 去除 BOM 和空行
-      const lines = raw.replace(/^﻿/, "").split(/\r?\n/).filter(l => l.trim());
-      if (lines.length < 2) { alert("CSV 文件为空或格式错误"); return; }
-
-      // 解析表头
-      const header = csvParseLine(lines[0]);
-      const colIdx = {};
-      CSV_COLS.forEach((name, i) => {
-        const idx = header.indexOf(name);
-        if (idx >= 0) colIdx[name] = idx;
-      });
-      if (!('分类名称' in colIdx && '中文' in colIdx)) {
-        alert("CSV 格式不正确。需要包含列：分类名称, 分类图标, 中文, 英文, 收藏");
-        return;
-      }
-
-      // 按分类名称去重收集分类
-      const catByName = {}; // name -> {id, name, icon}
-      const newTags = [];
-      let maxId = nextId;
-      let nextCatId = Math.max(0, ...categories.map(c => c.id)) + 1;
-
-      for (let i = 1; i < lines.length; i++) {
-        const row = csvParseLine(lines[i]);
-        if (row.length < 2) continue;
-
-        const catName = (row[colIdx['分类名称']] || '').trim();
-        const catIcon = (row[colIdx['分类图标']] || '').trim() || '📁';
-
-        // 按名称匹配/创建分类
-        if (catName && !catByName[catName]) {
-          catByName[catName] = { id: nextCatId++, name: catName, icon: catIcon };
-          maxId = Math.max(maxId, nextCatId);
-        }
-
-        const cn = (row[colIdx['中文']] || '').trim();
-        if (!cn) continue; // 仅分类行（无标签），跳过
-
-        const en = (row[colIdx['英文']] || '').trim() || undefined;
-        const fav = (row[colIdx['收藏']] || '').trim() === '是';
-
-        const catId = fav ? FAV_CAT_ID : (catByName[catName]?.id || FAV_CAT_ID);
-        const tagId = maxId++;
-
-        newTags.push({ id: tagId, categoryId: catId, cn, en });
-      }
-
-      if (Object.keys(catByName).length === 0 && newTags.length === 0) {
-        alert("CSV 中没有找到有效数据"); return;
-      }
-
-      // 重建数据
-      const cats = Object.values(catByName);
-      // 确保收藏分类存在
-      if (!cats.find(c => c.id === FAV_CAT_ID) && newTags.some(t => t.categoryId === FAV_CAT_ID)) {
-        cats.unshift({ id: FAV_CAT_ID, name: "收藏", icon: "⭐", fixed: true });
-      }
-      categories = cats;
-      tags = newTags;
-      canvasTags = []; // 画布不导入
-      nextId = maxId + 1;
-
-      Storage.set("categories", categories);
-      Storage.set("tags", tags);
-      Storage.set("canvas", canvasTags);
-      location.reload();
-    } catch (err) {
-      alert("CSV 导入失败: " + err.message);
-    }
-  };
-  r.readAsText(f, "UTF-8");
-}
-function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+function debounce(fn, ms) { let t; const w = (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; w.cancel = () => { clearTimeout(t); t = null; }; return w; }
 
 // 模糊搜索：先精确子串匹配，再逐字符模糊匹配
 function fuzzyMatch(text, query) {
@@ -1683,8 +2077,7 @@ function bindEvents() {
   document.getElementById('btn-add-cat').onclick = openAddCategory;
 
   $("#category-tabs").onclick = (e) => {
-    // 编辑模式下不响应分类切换
-    if (catEditMode) return;
+    // cat-actions 按钮已 stopPropagation；编辑态也允许切换大类（便于给不同大类管理子类）
     const tab = e.target.closest(".tab[data-id]");
     if (tab) { currentCatId = +tab.dataset.id; renderTabs(); renderLibrary(); }
   };
@@ -1930,10 +2323,13 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
   $("#btn-reset").onclick = () => { if (confirm("确定重置所有数据？不可恢复！")) { localStorage.clear(); location.reload(); } };
 
   // 炸开
-  $("#parse-input").oninput = $("#opt-comma").onchange = $("#opt-space").onchange = debounce(doParse, 300);
+  $("#btn-rule-parse").onclick = doParse;
+  $("#btn-rule-settings").onclick = openSplitSettings;
+  $("#btn-save-split-rules").onclick = saveSplitRules;
+  $("#parse-input").oninput = () => {};
   $("#btn-ai-parse").onclick = doAIParse;
   $("#btn-parse-all").onclick = () => {
-    $$('#parse-result .tag-card[data-text]').forEach(card => canvasTags.push({ cn: card.dataset.text }));
+    $$('#parse-result .tag-card[data-text]').forEach(card => canvasTags.push({ cn: card.dataset.text, en: card.dataset.en || undefined }));
     saveCanvas(); renderCanvas(); switchMode("paint");
   };
   $("#btn-parse-save").onclick = () => {
@@ -1960,6 +2356,12 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
   $("#btn-reverse").onclick = doReversePrompt;
   $("#btn-copy-reverse").onclick = copyReverseResult;
   $("#btn-reverse-to-parse").onclick = reverseToParse;
+
+  // 炸开：卡片点击弹出候选
+  $("#parse-result").onclick = (e) => {
+    const card = e.target.closest(".tag-card[data-idx]");
+    if (card) onParseCardClick(+card.dataset.idx);
+  };
 }
 
 init();

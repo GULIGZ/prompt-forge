@@ -1005,3 +1005,109 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   justify-content: flex-end;
   background: var(--bg2);
 }
+
+/* ========== 炸开模式：匹配分析着色 ========== */
+.parse-options .btn-ai-match {
+  background: var(--bg3); color: var(--text2); border: 1px solid var(--border);
+  padding: 5px 12px; border-radius: var(--radius); cursor: pointer; font-size: 12px;
+  font-weight: 600; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+  transition: all 0.15s;
+}
+.parse-options .btn-ai-match:hover { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.08); }
+#parse-stats { font-size: 12px; color: var(--text2); min-height: 16px; padding: 0 2px; flex-shrink: 0; }
+#parse-stats .st-exact { color: var(--green); font-weight: 600; }
+#parse-stats .st-similar { color: var(--blue); font-weight: 600; }
+#parse-stats .st-contains { color: var(--orange); font-weight: 600; }
+#parse-stats .st-new { color: var(--highlight); font-weight: 600; }
+.parse-right .parse-result .tag-card { cursor: pointer; border: 1px solid var(--border); }
+.parse-right .parse-result .tag-card .badge { font-size: 10px; padding: 1px 5px; border-radius: 4px; font-weight: 600; margin-left: 4px; }
+.parse-right .parse-result .tag-card .en { font-size: 11px; color: var(--text3); margin-left: 4px; font-weight: 400; }
+.parse-right .parse-result .tag-card.exact { background: rgba(4,208,90,0.10); border-color: var(--green); }
+.parse-right .parse-result .tag-card.exact .badge { background: var(--green); color: #fff; }
+.parse-right .parse-result .tag-card.similar { background: rgba(59,130,246,0.10); border-color: var(--blue); }
+.parse-right .parse-result .tag-card.similar .badge { background: var(--blue); color: #fff; }
+.parse-right .parse-result .tag-card.contains { background: rgba(252,120,0,0.10); border-color: var(--orange); }
+.parse-right .parse-result .tag-card.contains .badge { background: var(--orange); color: #fff; }
+.parse-right .parse-result .tag-card.new { background: rgba(220,38,38,0.06); border: 1px dashed var(--highlight); }
+.parse-right .parse-result .tag-card.new .badge { background: var(--highlight); color: #fff; }
+.parse-legend { display: flex; gap: 12px; font-size: 11px; color: var(--text2); padding: 4px 2px 0; flex-shrink: 0; }
+.parse-legend .lg { display: inline-flex; align-items: center; gap: 4px; }
+.parse-legend .lg::before { content: ""; width: 9px; height: 9px; border-radius: 3px; }
+.parse-legend .lg.exact::before { background: var(--green); }
+.parse-legend .lg.similar::before { background: var(--blue); }
+.parse-legend .lg.contains::before { background: var(--orange); }
+.parse-legend .lg.new::before { background: var(--highlight); }
+
+/* 相似候选弹窗 */
+.similar-list { list-style: none; margin: 8px 0; padding: 0; max-height: 320px; overflow-y: auto; }
+.similar-list li {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius);
+  margin-bottom: 6px; font-size: 13px; background: var(--bg);
+}
+.similar-list li .cn { font-weight: 600; }
+.similar-list li .en { font-size: 11px; color: var(--text3); }
+.similar-list li .cat { font-size: 11px; color: var(--text2); margin-left: auto; }
+.similar-list li .sim { color: var(--blue); font-weight: 600; font-size: 11px; }
+.similar-list .similar-empty { color: var(--text3); justify-content: center; border-style: dashed; }
+#similar-cat-select { width: 100%; margin-bottom: 8px; }
+
+/* ========== 两层分类：分组网格 ========== */
+.subcat-group { width: 100%; margin-bottom: 14px; }
+.subcat-header {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--text2);
+  padding: 4px 2px 6px; margin-bottom: 2px;
+  border-bottom: 1px solid var(--border-light);
+}
+  .subcat-header .icon-svg { width: 13px; height: 13px; font-size: 13px; opacity: 0.8; }
+  .subcat-actions { margin-left: auto; display: inline-flex; gap: 2px; }
+  .subcat-actions .btn-sub-edit,
+  .subcat-actions .btn-sub-del { display: none; }
+  .cat-edit-mode .subcat-actions .btn-sub-edit,
+  .cat-edit-mode .subcat-actions .btn-sub-del { display: inline-flex; }
+.subcat-actions button {
+  background: none; border: none; cursor: pointer; color: var(--text3);
+  width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center;
+}
+.subcat-actions button svg { width: 12px; height: 12px; }
+.subcat-actions .btn-sub-del:hover { background: #fee2e2; color: var(--highlight); }
+.subcat-actions .btn-sub-edit:hover { background: var(--accent-light); color: var(--accent); }
+.subcat-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 2px 0; }
+/* 大类 tab 上的"加子类"按钮 */
+.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-add-sub {
+  background: none; border: none; cursor: pointer; color: var(--accent);
+  width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
+}
+.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-add-sub svg { width: 13px; height: 13px; }
+.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-add-sub:hover { background: var(--accent-light); border-radius: 4px; }
+/* 标签弹窗子类选择 */
+#input-subcat-wrap { margin-top: 4px; }
+#input-subcat-wrap .subcat-label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 4px; }
+#input-subcat-wrap .setting-select { width: 100%; }
+
+/* 子分组：折叠/置顶/上下移 按钮 */
+.subcat-header .subcat-name { font-weight: 700; }
+.btn-sub-collapse {
+  background: none; border: none; cursor: pointer; color: var(--text3);
+  width: 16px; height: 16px; padding: 0; font-size: 11px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 4px;
+}
+.btn-sub-collapse:hover { color: var(--text); background: var(--border-light); }
+.subcat-actions .btn-sub-up, .subcat-actions .btn-sub-down {
+  font-size: 12px; line-height: 1;
+}
+.subcat-actions .btn-sub-up:hover, .subcat-actions .btn-sub-down:hover { background: var(--accent-light); color: var(--accent); }
+.subcat-empty { font-size: 12px; color: var(--text3); font-style: italic; padding: 4px 2px; }
+.subcat-tags.hidden { display: none; }
+
+/* AI 拆分大类徽标 */
+.tag-card .cat-badge { font-size: 11px; margin-right: 3px; opacity: 0.75; }
+
+/* 一键入库批次条 */
+.parse-batch-bar {
+  flex-shrink: 0; display: flex; align-items: center; gap: 12px;
+  padding: 8px 10px; background: var(--accent-light); border-radius: var(--radius);
+  font-size: 13px; color: var(--text); margin-bottom: 6px;
+}
+.parse-batch-bar .btn-confirm { font-size: 12px; padding: 5px 12px; margin-left: auto; }

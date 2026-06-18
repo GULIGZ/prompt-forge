@@ -92,12 +92,26 @@
           <!-- 📝 文本解析 -->
           <textarea id="parse-input" placeholder="粘贴整段提示词，自动拆解..."></textarea>
           <div class="parse-options">
-            <label><input type="checkbox" id="opt-comma" checked> 逗号切分</label>
-            <label><input type="checkbox" id="opt-space"> 空格切分</label>
+            <button id="btn-rule-parse" class="btn-rule-parse">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>
+              规则拆分
+              <span class="rule-gear" id="btn-rule-settings" title="拆分规则设置">⚙️</span>
+            </button>
             <button id="btn-ai-parse" class="btn-ai-parse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4"/><path d="M8 16H6a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M8 16v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2"/></svg> AI 语义拆分</button>
           </div>
           <div class="ai-loading hidden" id="ai-loading"><span></span><span></span><span></span> AI 解析中...</div>
+          <div id="parse-stats" class="parse-stats"></div>
           <div id="parse-result" class="parse-result"><span class="prompt-placeholder">拆分后的标签将在这里显示...</span></div>
+          <div id="parse-batch-bar" class="parse-batch-bar hidden">
+            <span id="parse-batch-info"></span>
+            <button id="btn-parse-batch-add" class="btn-confirm">一键入库</button>
+          </div>
+          <div class="parse-legend">
+            <span class="lg exact">已有</span>
+            <span class="lg similar">相似</span>
+            <span class="lg contains">近似</span>
+            <span class="lg new">新词</span>
+          </div>
           <div class="parse-actions">
             <button id="btn-parse-all">全部加入画布</button>
             <button id="btn-parse-save">保存整段</button>
@@ -107,11 +121,26 @@
     </main>
   </div>
 
+  <!-- 相似/候选标签弹窗 -->
+  <div id="modal-similar" class="modal hidden"><div class="modal-content">
+    <h3 id="similar-title">候选标签</h3>
+    <ul id="similar-list" class="similar-list"></ul>
+    <select id="similar-cat-select" class="setting-select hidden"></select>
+    <div class="modal-actions">
+      <button class="btn-cancel">关闭</button>
+      <button id="btn-similar-add" class="btn-confirm hidden">加入词库</button>
+    </div>
+  </div></div>
+
   <!-- 弹窗 -->
   <div id="modal-tag" class="modal hidden"><div class="modal-content">
     <h3 id="tag-modal-title">添加提示词</h3>
     <input type="text" id="input-cn" placeholder="提示词内容（中文）">
     <input type="text" id="input-en" placeholder="英文翻译（可选）">
+    <div id="input-subcat-wrap" class="hidden">
+      <label class="subcat-label">子分类</label>
+      <select id="input-subcat" class="setting-select"></select>
+    </div>
     <div class="modal-actions"><button class="btn-cancel">取消</button><button class="btn-confirm">确认</button></div>
   </div></div>
 
@@ -220,6 +249,17 @@
       </div>
     </div>
   </div>
+
+  <!-- 拆分规则设置 -->
+  <div id="modal-split-settings" class="modal hidden"><div class="modal-content">
+    <h3>拆分规则设置</h3>
+    <label>自定义分隔符（每行一个，逗号/空格默认已包含）</label>
+    <textarea id="split-delim-input" rows="4" placeholder="例如：&#10;;&#10;/&#10;|"></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel">取消</button>
+      <button id="btn-save-split-rules" class="btn-confirm">保存</button>
+    </div>
+  </div></div>
 
   <!-- 撤销通知 -->
   <div id="undo-toast" class="undo-toast hidden">
