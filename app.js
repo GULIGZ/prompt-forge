@@ -1423,13 +1423,29 @@ function switchMode(mode) {
   $("#btn-parse-mode").classList.toggle("active", mode === "parse");
   $("#paint-mode").classList.toggle("hidden", mode !== "paint");
   $("#parse-mode").classList.toggle("hidden", mode !== "parse");
-  if (mode === "parse") doParse();
+  // 不再自动调 doParse()，避免覆盖 AI 拆分结果
 }
 
 function saveCanvas() { Storage.set("canvas", canvasTags); }
 
 // 百度翻译配置
-const BAIDU_CONFIG = { appid: '20260612002630330', key: 'pppsq04tDgJ1ml_1bu3i' };
+
+// 默认提示词配置
+const DEFAULT_PROMPTS = {
+  reverse: "你是一个提示词反推专家。根据用户提供的图片，分析其风格、主体、光影、色彩、构图等要素，生成一个完整的提示词。",
+  parse: '你是一个提示词分析助手。将用户的提示词文本拆解为语义独立的标签词，并标注各标签所属大类。\n要求：\n1. 每个标签是一个独立的语义单元\n2. 返回 JSON 格式：{ "tags": [{ "cn": "...", "en": "...", "category": "大类名" }] }\n3. 去除重复和无意义的通用词',
+};
+function getPromptConfig(key) {
+  var saved = Storage.get("promptConfig");
+  return (saved && saved[key]) || DEFAULT_PROMPTS[key];
+}
+function setPromptConfig(key, val) {
+  var saved = Storage.get("promptConfig", {});
+  saved[key] = val;
+  Storage.set("promptConfig", saved);
+}
+
+function getBaiduConfig() { return Storage.get("translateConfig") || { appid: '', key: '' }; }
 
 // 紧凑 MD5（Paul Johnston 算法，公开领域，广泛验证）
 function md5(s) {
@@ -1511,14 +1527,15 @@ function jsonp(url) {
 let _translating = false;
 async function autoTranslateAll(untranslated) {
   if (untranslated.length === 0) return;
+  var _cfg = getBaiduConfig(); if (!_cfg.appid || !_cfg.key) { console.warn("翻译配置未设置，跳过自动翻译"); return; }
   const texts = untranslated.map(t => t.cn);
   const q = texts.join('\n');
   const salt = Date.now();
-  const sign = md5(BAIDU_CONFIG.appid + q + salt + BAIDU_CONFIG.key);
-  console.log('百度翻译 sign 原文:', BAIDU_CONFIG.appid + q + salt + '(密钥隐藏)');
+  const sign = md5(getBaiduConfig().appid + q + salt + getBaiduConfig().key);
+  console.log('百度翻译 sign 原文:', getBaiduConfig().appid + q + salt + '(密钥隐藏)');
   console.log('百度翻译 sign:', sign);
   console.log('百度翻译 URL q 参数:', encodeURIComponent(q).slice(0,80) + '...');
-  const url = `https://fanyi-api.baidu.com/api/trans/vip/translate?q=${encodeURIComponent(q)}&from=zh&to=en&appid=${BAIDU_CONFIG.appid}&salt=${salt}&sign=${sign}`;
+  const url = `https://fanyi-api.baidu.com/api/trans/vip/translate?q=${encodeURIComponent(q)}&from=zh&to=en&appid=${getBaiduConfig().appid}&salt=${salt}&sign=${sign}`;
   try {
     const data = await jsonp(url);
     if (data.trans_result) {
@@ -1678,7 +1695,8 @@ function splitPrompt(text, delimiters) {
   return [...new Set(text.split(re).map(s => s.trim()).filter(Boolean))];
 }
 
-function doParse() {
+function doParse(skipAICheck) {
+  if (!skipAICheck && window._isAIMode) return;
   const text = $("#parse-input").value.trim();
   if (!text) { _parseAtoms = []; $("#parse-result").innerHTML = PLACEHOLDER_HTML; $("#parse-stats").textContent = ""; $("#parse-stats").classList.add("hidden"); return; }
 
@@ -1768,13 +1786,23 @@ async function doAIParse() {
   try {
     const bigCats = categories.filter(c => c.parentId == null && !c.fixed);
     const catNames = bigCats.map(c => c.name).join("、");
+    // 构建完整分类树参考：每个大类下的所有子标签
+    var catTree = bigCats.map(function(c) {
+      var subs = categories.filter(function(s) { return s.parentId === c.id; }).map(function(s) { return s.name; });
+      return c.name + "：" + (subs.length ? subs.join("、") : "（暂无子标签）");
+    }).join("\n");
+    var _sysPrompt = "你是一个提示词拆解专家。请将用户输入的提示词文本拆解为独立的语义标签词。" +
+      "\n\n### 现有标签库参考（分类树）\n" + catTree +
+      "\n\n### 要求" +
+      "\n1. 从输入文本中提取每个独立的语义单元作为标签" +
+      "\n2. 每个标签必须归入上面分类树中**最匹配的大类**（第一个层级）" +
+      "\n3. 如果标签与现有子标签高度相似，优先使用现有子标签的 cn" +
+      "\n4. 返回格式必须是 JSON 数组，仅输出 JSON，不要其他文字：" +
+      '\n{ "tags": [{"cn": "标签中文名", "category": "大类名"}] }' +
+      "\n5. category 必须是以下之一：" + catNames +
+      "\n6. 去除重复和无意义的通用词";
     const { content, error } = await callOpenAI([
-      { role: "system", content: `你是一个提示词分析助手。将用户的提示词文本拆解为语义独立的标签词，并标注各标签所属大类。
-要求：
-1. 每个标签是一个独立的语义单元
-2. 返回 JSON 格式：{ "tags": [{ "cn": "...", "en": "...", "category": "大类名" }] }
-3. 去除重复和无意义的通用词
-4. category 必须是以下之一：${catNames}` },
+      { role: "system", content: _sysPrompt },
       { role: "user", content: text },
     ], { model: apiConfig.model });
     if (error) { alert("AI 解析失败: " + error); return; }
@@ -1797,12 +1825,17 @@ async function doAIParse() {
     }
     const list = (parsed.tags || []).filter(t => t.cn);
     if (!list.length) { alert("AI 未能解析出标签，请重试"); return; }
-    // 补大类 id
-    list.forEach(a => {
-      a._bigId = (categories.filter(c => c.parentId == null && !c.fixed).find(c => c.name === a.category)?.id) || UNCAT_ID;
+    // 补大类 id（支持模糊匹配：trim、包含关系）
+    list.forEach(function(a) {
+      var match = categories.filter(function(c) { return c.parentId == null && !c.fixed; }).find(function(c) {
+        var catName = (a.category || "").trim();
+        return c.name === catName || c.name.indexOf(catName) !== -1 || catName.indexOf(c.name) !== -1;
+      });
+      a._bigId = match ? match.id : UNCAT_ID;
     });
     _parseAtoms = list;
     _parseAtoms.forEach(a => { a.match = matchAtom(a, tags); });
+    window._isAIMode = true;
     // 自动向量匹配（静默跳过失败，不阻断后续）
     if (supportsEmbedding() && getActiveConfig()?.key) {
       loading.textContent = "AI 语义匹配中…";
@@ -1877,10 +1910,11 @@ function renderParseResult() {
     const m = a.match;
     const simTxt = m.sim ? ` ${(m.sim * 100).toFixed(0)}%` : "";
     // 大类徽标：仅 AI 拆分时有 _bigId
-    const catBadge = a._bigId ? (() => { const c = categories.find(x => x.id === a._bigId); return c ? `<span class="cat-badge">${renderIcon(c.icon)}</span>` : ""; })() : "";
+    const catBadge = a._bigId ? (() => { const c = categories.find(x => x.id === a._bigId); return c ? `<span class="cat-badge">${renderIcon(c.icon)} ${escapeHtml(c.name)}</span>` : ""; })() : "";
     return `<div class="tag-card ${m.status.toLowerCase()}" data-idx="${i}" data-text="${escapeHtml(a.cn)}"${a.en ? ` data-en="${escapeHtml(a.en)}"` : ""}>
       ${catBadge}<span class="cn">${escapeHtml(a.cn)}</span>${a.en ? `<span class="en">${escapeHtml(a.en)}</span>` : ""}
       <span class="badge">${STATUS_LABEL[m.status]}${simTxt}</span>
+      <button class="btn-parse-remove" title="移除"><svg width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 14L34 34" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 34L34 14" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>`;
   }).join("") : PLACEHOLDER_HTML;
 
@@ -2036,6 +2070,17 @@ function onParseCardClick(idx) {
     addBtn.classList.remove("hidden");
     addBtn.onclick = () => addAtomFromParse(idx);
   }
+  // 初始化分类下拉，默认选中 AI 匹配的大类
+  var sel = $("#similar-cat-select");
+  sel.innerHTML = "";
+  var items = [];
+  categories.filter(function(c) { return c.parentId == null && c.id !== FAV_CAT_ID; }).forEach(function(big) {
+    items.push({ value: big.id, icon: big.icon, label: big.name + "（未分组）", depth: 0 });
+    categories.filter(function(c) { return c.parentId === big.id; }).forEach(function(sub) {
+      items.push({ value: sub.id, icon: sub.icon, label: sub.name, depth: 1 });
+    });
+  });
+  buildCatSelect(sel, items, a._bigId || null, null);
   $("#modal-similar").classList.remove("hidden");
 }
 
@@ -2052,7 +2097,7 @@ function addAtomFromParse(idx) {
       items.push({ value: sub.id, icon: sub.icon, label: sub.name, depth: 1 });
     });
   });
-  buildCatSelect(sel, items, null, (val) => {
+  buildCatSelect(sel, items, a._bigId || null, (val) => {
     const added = { id: nextId++, categoryId: +val, cn: a.cn, en: a.en };
     tags.push(added);
     Storage.set("tags", tags);
@@ -2107,7 +2152,7 @@ async function doReversePrompt() {
   resultEl.value = "⏳ 正在分析图片...";
   try {
     const { content, error } = await callOpenAI([
-      { role: "system", content: "你是一个提示词反推专家。根据用户提供的图片，分析其风格、主体、光影、色彩、构图等要素，生成一个完整的提示词。" },
+      { role: "system", content: getPromptConfig("reverse") },
       { role: "user", content: [
         { type: "image_url", image_url: { url: _reverseImageData } },
         { type: "text", text: "请反推这张图片的提示词" },
@@ -2360,7 +2405,7 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
       activeApiId = id;
       Storage.set("activeApiId", activeApiId);
       renderSettingsApiList();
-    }
+    loadTranslateSettings();    }
   };
   window.__apiEdit = function(id) { openApiEdit(id); };
   window.__apiDel = function(id) {
@@ -2377,7 +2422,7 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
         Storage.set("activeApiId", activeApiId);
       }
       renderSettingsApiList();
-    });
+    loadTranslateSettings();    });
   };
 
   function openApiEdit(id) {
@@ -2458,7 +2503,7 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
     }
     $("#modal-api-edit").classList.add("hidden");
     renderSettingsApiList();
-  }
+    loadTranslateSettings();  }
 
   // ========== 获取模型 / 测试连接 ==========
   async function fetchModelsFromApi(provider, baseURL, key) {
@@ -2509,11 +2554,89 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
   $("#btn-settings").onclick = () => {
     switchSettingsTab('api');
     renderSettingsApiList();
+    loadTranslateSettings();
+    loadPromptSettings();
     $("#modal-settings").classList.remove("hidden");
   };
   $("#btn-add-api").onclick = () => openApiEdit();
   $("#btn-save-api").onclick = saveApiEdit;
   $("#btn-cancel-api").onclick = () => $("#modal-api-edit").classList.add("hidden");
+
+  // 翻译 API 设置
+  function loadTranslateSettings() {
+    var cfg = getBaiduConfig();
+    document.querySelector("#translate-appid").value = cfg.appid || "";
+    document.querySelector("#translate-key").value = cfg.key || "";
+  }
+  document.querySelector("#btn-save-translate").onclick = function() {
+    var appid = document.querySelector("#translate-appid").value.trim();
+    var key = document.querySelector("#translate-key").value.trim();
+    if (!appid || !key) return alert("请填写完整的百度翻译配置");
+    Storage.set("translateConfig", { appid: appid, key: key });
+    alert("翻译配置已保存");
+  };
+  // 提示词编辑
+  function loadPromptSettings() {
+    document.querySelector("#prompt-reverse").value = getPromptConfig("reverse");
+    document.querySelector("#prompt-parse").value = getPromptConfig("parse");
+    updateParsePreview();
+  }
+  function updateParsePreview() {
+    var el = document.querySelector("#prompt-parse-preview");
+    if (!el) return;
+    var cats = categories.filter(function(c) { return c.parentId == null && !c.fixed; });
+    var catNames = cats.map(function(c) { return c.name; }).join("、");
+    var tree = cats.map(function(c) {
+      var subs = categories.filter(function(s) { return s.parentId === c.id; }).map(function(s) { return s.name; });
+      return c.name + "：" + (subs.length ? subs.join("、") : "（暂无子标签）");
+    }).join("\n");
+    el.textContent = "你是一个提示词拆解专家。请将用户输入的提示词文本拆解为独立的语义标签词。" +
+      "\n\n### 现有标签库参考（分类树）\n" + tree +
+      "\n\n### 要求" +
+      "\n1. 从输入文本中提取每个独立的语义单元作为标签" +
+      "\n2. 每个标签必须归入上面分类树中**最匹配的大类**（第一个层级）" +
+      "\n3. 如果标签与现有子标签高度相似，优先使用现有子标签的 cn" +
+      "\n4. 返回格式必须是 JSON 数组，仅输出 JSON，不要其他文字：" +
+      '\n{ "tags": [{"cn": "标签中文名", "category": "大类名"}] }' +
+      "\n5. category 必须是以下之一：" + catNames +
+      "\n6. 去除重复和无意义的通用词";
+  }
+  document.querySelector("#btn-save-prompts").onclick = function() {
+    setPromptConfig("reverse", document.querySelector("#prompt-reverse").value);
+    setPromptConfig("parse", document.querySelector("#prompt-parse").value);
+    updateParsePreview();
+    alert("提示词已保存，下次执行功能时生效");
+  };
+  var _previewDebounce;
+  document.querySelector("#prompt-parse").oninput = function() {
+    if (_previewDebounce) clearTimeout(_previewDebounce);
+    _previewDebounce = setTimeout(updateParsePreview, 300);
+  };
+  document.querySelector("#btn-reset-prompts").onclick = function() {
+    document.querySelector("#prompt-reverse").value = DEFAULT_PROMPTS.reverse;
+    document.querySelector("#prompt-parse").value = DEFAULT_PROMPTS.parse;
+    setPromptConfig("reverse", DEFAULT_PROMPTS.reverse);
+    setPromptConfig("parse", DEFAULT_PROMPTS.parse);
+    updateParsePreview();
+    alert("已恢复默认提示词");
+  };
+
+  document.querySelector("#btn-test-translate").onclick = async function() {
+    var appid = document.querySelector("#translate-appid").value.trim();
+    var key = document.querySelector("#translate-key").value.trim();
+    if (!appid || !key) return alert("请先填写并保存翻译配置");
+    var q = "test";
+    var salt = Date.now();
+    var sign = md5(appid + q + salt + key);
+    var url = "https://fanyi-api.baidu.com/api/trans/vip/translate?q=" + encodeURIComponent(q) + "&from=zh&to=en&appid=" + appid + "&salt=" + salt + "&sign=" + sign;
+    try {
+      var data = await jsonp(url);
+      if (data.trans_result) alert("✅ 连接成功！测试结果: " + data.trans_result[0].dst);
+      else if (data.error_code) alert("❌ 翻译失败 [" + data.error_code + "]: " + (data.error_msg || "未知错误"));
+    } catch(e) {
+      alert("❌ 请求失败: " + e.message);
+    }
+  };
 
   // 获取模型按钮
   $("#btn-fetch-models").onclick = async () => {
@@ -2589,16 +2712,15 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
     renderTabs(); renderLibrary(); closeModals();
   };
   
-  $("#btn-import").onclick = () => $("#import-file").click();
+  $("#btn-import").onclick = () => { $("#import-file").value = ""; $("#import-file").click(); };
   $("#btn-template").onclick = downloadTemplate;
   $("#import-file").onchange = importData;
   $("#btn-reset").onclick = () => { if (confirm("确定重置所有数据？不可恢复！")) { localStorage.clear(); location.reload(); } };
 
   // 炸开
-  $("#btn-rule-parse").onclick = doParse;
+  $("#btn-rule-parse").onclick = () => { window._isAIMode = false; doParse(true); };
   $("#btn-rule-settings").onclick = openSplitSettings;
   $("#btn-save-split-rules").onclick = saveSplitRules;
-  $("#parse-input").oninput = () => {};
   $("#btn-ai-parse").onclick = doAIParse;
   $("#btn-parse-all").onclick = () => {
     $$('#parse-result .tag-card[data-text]').forEach(card => canvasTags.push({ cn: card.dataset.text, en: card.dataset.en || undefined }));
@@ -2631,6 +2753,13 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
 
   // 炸开：卡片点击弹出候选
   $("#parse-result").onclick = (e) => {
+    const rm = e.target.closest(".btn-parse-remove");
+    if (rm) {
+      const card = rm.closest(".tag-card[data-idx]");
+      _parseAtoms.splice(+card.dataset.idx, 1);
+      renderParseResult();
+      return;
+    }
     const card = e.target.closest(".tag-card[data-idx]");
     if (card) onParseCardClick(+card.dataset.idx);
   };

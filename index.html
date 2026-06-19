@@ -100,7 +100,7 @@
             <button id="btn-ai-parse" class="btn-ai-parse"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4"/><path d="M8 16H6a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M8 16v2a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-2"/></svg> AI 语义拆分</button>
           </div>
           <div class="ai-loading hidden" id="ai-loading"><span></span><span></span><span></span> AI 解析中...</div>
-          <div id="parse-stats" class="parse-stats"></div>
+          <div id="parse-stats" class="parse-stats hidden"></div>
           <div id="parse-result" class="parse-result"><span class="prompt-placeholder">拆分后的标签将在这里显示...</span></div>
           <div id="parse-batch-bar" class="parse-batch-bar hidden">
             <span id="parse-batch-info"></span>
@@ -158,6 +158,8 @@
         <nav class="settings-tabs">
           <div class="settings-tab active" data-tab="api"><span class="icon-svg">🔑</span> API 配置</div>
           <div class="settings-tab" data-tab="data"><span class="icon-svg">📦</span> 数据管理</div>
+          <div class="settings-tab" data-tab="translate"><span class="icon-svg">🌐</span> 翻译 API</div>
+          <div class="settings-tab" data-tab="prompt"><span class="icon-svg">✏️</span> 提示词编辑</div>
           <div class="settings-tab" data-tab="about"><span class="icon-svg">ℹ️</span> 关于</div>
         </nav>
 
@@ -188,6 +190,49 @@
             </div>
           </div>
 
+          <!-- 翻译 API 面板 -->
+          <div class="settings-panel hidden" data-panel="translate">
+            <div class="settings-panel-header">
+              <h3>翻译 API 配置</h3>
+            </div>
+            <div class="translate-config">
+              <label>服务商</label>
+              <select id="translate-provider" class="setting-select">
+                <option value="baidu">百度翻译</option>
+              </select>
+              <label>APP ID</label>
+              <input type="text" id="translate-appid" placeholder="百度翻译 APP ID" autocomplete="off">
+              <label>密钥 (Key)</label>
+              <input type="password" id="translate-key" placeholder="百度翻译密钥">
+              <div class="translate-actions">
+                <button id="btn-save-translate" class="btn-confirm">保存</button>
+                <button id="btn-test-translate" class="btn-outline">🔌 测试连接</button>
+              </div>
+            </div>
+          </div>
+          <!-- 提示词编辑面板 -->
+          <div class="settings-panel hidden" data-panel="prompt">
+            <div class="settings-panel-header">
+              <h3>提示词编辑</h3>
+            </div>
+            <p class="prompt-editor-desc">自定义 AI 功能的底层提示词，帮助模型更好地理解任务。修改后点击保存生效。</p>
+            <div class="prompt-editor-group">
+              <label class="prompt-editor-label">图片反推提示词</label>
+              <textarea id="prompt-reverse" class="prompt-editor-textarea" rows="4" placeholder="输入反推图片的 system prompt"></textarea>
+            </div>
+            <div class="prompt-editor-group">
+              <label class="prompt-editor-label">AI 语义拆分提示词</label>
+              <textarea id="prompt-parse" class="prompt-editor-textarea" rows="5" placeholder="输入语义拆分的 system prompt"></textarea>
+            <details class="prompt-preview-details">
+              <summary>查看完整发送内容（含动态追加部分）</summary>
+              <pre id="prompt-parse-preview" class="prompt-preview-block"></pre>
+            </details>
+            </div>
+            <div class="prompt-editor-actions">
+              <button id="btn-save-prompts" class="btn-confirm">保存</button>
+              <button id="btn-reset-prompts" class="btn-outline">恢复默认</button>
+            </div>
+          </div>
           <!-- 关于面板 -->
           <div class="settings-panel hidden" data-panel="about">
             <h3>关于 PromptForge</h3>

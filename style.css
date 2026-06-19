@@ -44,7 +44,7 @@ button svg, .tab svg, .cat-actions svg { width: 15px; height: 15px; }
   display: inline-flex; align-items: center; justify-content: center;
   color: #fff; font-size: 15px; font-weight: 700;
 }
-.mode-switch { display: flex; gap: 3px; background: #ebe3db; border-radius: 10px; padding: 3px; }
+.mode-switch { display: flex; gap: 3px; background: #ebe3db; border-radius: 10px; padding: 3px; margin-right: 99px; margin-left: -52px; }
 .mode-switch button {
   padding: 6px 14px; border-radius: 8px; border: none; cursor: pointer;
   font-size: 12.5px; font-weight: 600; background: transparent; color: #6b5d51;
@@ -546,8 +546,8 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .parse-right .parse-options input { margin-right: 4px; accent-color: var(--accent); }
 .parse-right .parse-result {
-  flex: 1; display: flex; flex-wrap: wrap; gap: 6px;
-  overflow-y: auto; padding: 13px 12px; align-content: flex-start; justify-content: flex-start;
+  flex: 1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 0px;
+  overflow-y: auto; padding: 8px 12px; align-content: flex-start; justify-content: flex-start;
   min-height: 40px; max-height: none;
   border: 1px solid var(--border); border-radius: var(--radius);
   background: var(--bg);
@@ -568,6 +568,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .parse-right .parse-actions button:last-child { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
 
 .btn-ai-parse {
+  height: 36px;
   background: var(--bg3); border: 1px solid var(--border); color: var(--text2);
   padding: 5px 28px 5px 12px; border-radius: var(--radius); cursor: pointer; font-size: 12px;
   line-height: 1.4; font-weight: 600; white-space: nowrap; transition: all 0.15s;
@@ -667,8 +668,8 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   font-size: 13px; font-weight: 600; line-height: 1.4;
   transition: all 0.15s;
 }
-.btn-cancel { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
-.btn-cancel:hover { background: var(--border); }
+.btn-cancel { background: var(--accent); color: #fff; border: none; padding: 8px 20px; border-radius: var(--radius); cursor: pointer; font-size: 13px; font-weight: 600; line-height: 1.4; transition: all 0.15s; }
+.btn-cancel:hover { opacity: 0.9; box-shadow: 0 2px 8px rgba(4,208,90,0.25); }
 .btn-confirm { background: var(--accent); color: #fff; }
 .btn-confirm:hover { opacity: 0.9; box-shadow: 0 2px 8px rgba(4,208,90,0.25); }
 .btn-danger { background: var(--highlight); color: #fff; }
@@ -722,7 +723,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   flex-direction: column;
   gap: 2px;
   padding: 14px 10px;
-  background: var(--bg3);
+  background: #fff;
   border-right: 1px solid var(--border);
 }
 .settings-tab {
@@ -744,7 +745,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   color: var(--text);
 }
 .settings-tab.active {
-  background: var(--bg2);
+  background: #EBE3DB;
   color: var(--text);
   box-shadow: var(--shadow-sm);
 }
@@ -895,7 +896,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   background: var(--accent);
   border: none;
   color: #fff;
-  padding: 6px 12px;
+  padding: 8px 14px;
   border-radius: var(--radius);
   cursor: pointer;
   font-size: 12px;
@@ -1050,6 +1051,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 /* 设置弹窗底部关闭 */
 .settings-footer {
+  margin-top: -14px;
   padding: 12px 20px;
   border-top: 1px solid var(--border);
   display: flex;
@@ -1066,6 +1068,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .parse-options .btn-ai-match:hover { border-color: var(--blue); color: var(--blue); background: rgba(59,130,246,0.08); }
 #parse-stats { font-size: 12px; color: var(--text2); min-height: 16px; padding: 0 2px; flex-shrink: 0; }
+#parse-stats:empty { display: none; }
 #parse-stats .st-exact { color: var(--green); font-weight: 600; }
 #parse-stats .st-similar { color: var(--blue); font-weight: 600; }
 #parse-stats .st-contains { color: var(--orange); font-weight: 600; }
@@ -1081,6 +1084,23 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .parse-right .parse-result .tag-card.contains .badge { background: var(--orange); color: #fff; }
 .parse-right .parse-result .tag-card.new { background: rgba(220,38,38,0.06); border: 1px dashed var(--highlight); }
 .parse-right .parse-result .tag-card.new .badge { background: var(--highlight); color: #fff; }
+.parse-right .parse-result .tag-card {
+  position: relative;
+}
+.parse-right .parse-result .btn-parse-remove {
+  position: absolute; top: -6px; right: -6px;
+  width: 18px; height: 18px; border-radius: 50%;
+  border: none; background: var(--highlight); color: #fff;
+  cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.15s;
+  padding: 0; z-index: 2;
+}
+.parse-right .parse-result .tag-card:hover .btn-parse-remove {
+  opacity: 1;
+}
+.parse-right .parse-result .btn-parse-remove:hover {
+  background: #b91c1c;
+}
 .parse-legend { display: flex; gap: 12px; font-size: 11px; color: var(--text2); padding: 4px 2px 0; flex-shrink: 0; }
 .parse-legend .lg { display: inline-flex; align-items: center; gap: 4px; }
 .parse-legend .lg::before { content: ""; width: 9px; height: 9px; border-radius: 3px; }
@@ -1203,7 +1223,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .subcat-tags.hidden { display: none; }
 
 /* AI 拆分大类徽标 */
-.tag-card .cat-badge { font-size: 11px; margin-right: 3px; opacity: 0.75; }
+.tag-card .cat-badge { font-size: 11px; margin-right: 4px; opacity: 0.75; display: inline-flex; align-items: center; gap: 2px; }
 
 /* 一键入库批次条 */
 .parse-batch-bar {
@@ -1219,3 +1239,158 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   display: inline-flex; align-items: center; justify-content: center;
 }
 .btn-parse-batch-clear:hover { border-color: var(--highlight); color: var(--highlight); background: rgba(220,38,38,0.06); }
+
+/* ========== 翻译 API 配置面板 ========== */
+.translate-config {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 4px 0;
+}
+.translate-config label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-top: 4px;
+}
+.translate-config input,
+.translate-config select {
+  width: 100%;
+  box-sizing: border-box;
+}
+.translate-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ========== 翻译 API 配置面板按钮 ========== */
+.translate-actions .btn-confirm {
+  border-radius: 8px;
+  border: none;
+  padding: 7px 16px;
+  height: 34px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.translate-actions .btn-outline {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 7px 16px;
+  height: 34px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+}
+.translate-actions .btn-outline:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ========== 提示词编辑面板 ========== */
+.prompt-editor-desc {
+  font-size: 13px;
+  color: var(--text3);
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+.prompt-editor-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.prompt-editor-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text2);
+}
+.prompt-editor-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.2s;
+}
+.prompt-editor-textarea:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(4,208,90,0.1);
+}
+.prompt-editor-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+.prompt-editor-actions .btn-outline {
+  border-radius: 8px;
+  height: 34px;
+}
+
+/* ========== 提示词编辑面板 - 预览区 ========== */
+.prompt-preview-details {
+  margin-top: -2px;
+  font-size: 12px;
+}
+.prompt-preview-details summary {
+  cursor: pointer;
+  color: var(--text3);
+  font-weight: 600;
+  padding: 2px 0;
+}
+.prompt-preview-details summary:hover {
+  color: var(--accent);
+}
+.prompt-preview-block {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 200px;
+  overflow-y: auto;
+  color: var(--text2);
+}
+
+/* 提示词编辑面板按钮样式补充 */
+.prompt-editor-actions .btn-confirm {
+  border-radius: 8px;
+  border: none;
+  height: 34.1953px;
+  width: 66px;
+}
+.settings-danger-zone #btn-reset {
+  border-radius: 8px;
+  border: none;
+  height: 34.1958px;
+  width: 130.688px;
+}
