@@ -673,11 +673,14 @@ function initEmptyTagDrag() {
     const cr = canvas.getBoundingClientRect();
     if (e.clientX >= cr.left && e.clientX <= cr.right && e.clientY >= cr.top && e.clientY <= cr.bottom) {
       setTimeout(() => {
-        const text = prompt("输入标签文字:");
-        if (text && text.trim()) {
-          canvasTags.push({ cn: text.trim() });
-          saveCanvas(); renderCanvas();
-        }
+        const id = Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+        canvasTags.push({ cn: '', _editing: true, _editId: id });
+        saveCanvas(); renderCanvas();
+        // 聚焦新标签
+        requestAnimationFrame(() => {
+          const inp = document.querySelector('.tag-chip.editing input');
+          if (inp) { inp.focus(); inp.select(); }
+        });
       }, 50);
     }
   });
@@ -736,7 +739,7 @@ function renderTabs() {
     // 编辑按钮始终渲染在 HTML 中，CSS 控制显隐（避免切换编辑模式时重建 DOM 导致的闪烁）
     const actions = c.fixed ? ""
       : `<span class="cat-actions">
-           <button class="btn-cat-add-sub" data-id="${c.id}" title="加子类">${iconSvg('+')}</button>
+           <button class="btn-cat-add-sub" data-id="${c.id}" title="加子类"><svg width="13" height="13" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M40 23V14L31 4H10C8.89543 4 8 4.89543 8 6V42C8 43.1046 8.89543 44 10 44H22"/><path d="M33 29V43"/><path d="M26 36H33H40"/><path d="M30 4V14H40"/></svg></button>
            <button class="btn-cat-edit" data-id="${c.id}">${iconSvg('✏️')}</button>
            <button class="btn-cat-del" data-id="${c.id}">${iconSvg('✕')}</button>
          </span>`;
@@ -861,11 +864,16 @@ function renderLibrary() {
 
 function renderCanvas() {
   const el = $("#tag-canvas");
-  el.innerHTML = canvasTags.map((t, i) =>
-    `<div class="tag-chip${t.silent ? ' silent' : ''}" data-idx="${i}">
+  el.innerHTML = canvasTags.map((t, i) => {
+    if (t._editing) {
+      return `<div class="tag-chip editing" data-idx="${i}" data-editid="${t._editId}">
+        <input type="text" class="chip-input" value="${escapeHtml(t.cn || '')}" placeholder="输入标签..." data-idx="${i}" autofocus>
+      </div>`;
+    }
+    return `<div class="tag-chip${t.silent ? ' silent' : ''}" data-idx="${i}">
       ${showEn && t.en ? t.en : t.cn}<span class="remove" data-idx="${i}">×</span>
-    </div>`
-  ).join("");
+    </div>`;
+  }).join("");
   bindCanvasMouseDrag();
   renderPreview(); // ← 更新预览
 }
@@ -1286,6 +1294,30 @@ function bindCanvasMouseDrag() {
       }, 350);
     });
   }
+
+  // 编辑模式 input 提交/失焦
+  $$('.tag-chip.editing .chip-input').forEach(inp => {
+    inp.onkeydown = (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        inp.blur();
+      }
+    };
+    inp.onblur = () => {
+      const idx = +inp.dataset.idx;
+      if (idx >= 0 && idx < canvasTags.length) {
+        const val = inp.value.trim();
+        if (val) {
+          canvasTags[idx].cn = val;
+          delete canvasTags[idx]._editing;
+          delete canvasTags[idx]._editId;
+        } else {
+          canvasTags.splice(idx, 1);
+        }
+        saveCanvas(); renderCanvas();
+      }
+    };
+  });
 
   // 删除按钮
   $$('.tag-chip .remove').forEach(x => x.onclick = (e) => {

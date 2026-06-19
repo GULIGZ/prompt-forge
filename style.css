@@ -107,7 +107,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   display: flex; gap: 8px; align-items: center; flex-shrink: 0;
 }
 #input-field {
-  flex: 1; padding: 9px 14px; background: var(--bg2);
+  flex: 1; padding: 7px 14px; background: var(--bg2);
   border: 2px solid var(--border); border-radius: 10px;
   color: var(--text); font-size: 14px; font-family: inherit;
   transition: border-color 0.2s, box-shadow 0.2s;
@@ -157,6 +157,21 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   border: 1px solid var(--border);
 }
 .tag-chip:hover { border-color: var(--accent); box-shadow: 0 2px 4px rgba(4,208,90,0.1); }
+
+
+/* 画布标签编辑 input */
+.tag-chip.editing {
+  padding: 0;
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px rgba(4,208,90,0.15);
+}
+.tag-chip .chip-input {
+  background: transparent; border: none; color: var(--text);
+  font-size: 13px; font-family: inherit; font-weight: 600;
+  padding: 5px 8px; outline: none; width: 80px;
+  line-height: 1.4;
+}
+.tag-chip .chip-input::placeholder { color: var(--text3); font-weight: 400; }
 .tag-chip .remove {
   color: var(--text3); cursor: pointer; opacity: 0.5; font-size: 12px;
   width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center;
@@ -236,7 +251,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 /* ========== Prompt Preview ========== */
 .prompt-preview {
-  flex-shrink: 0; min-height: 44px; max-height: 80px;
+  flex-shrink: 0; min-height: 44px; max-height: 100px;
   background: var(--bg2); border: 1px solid var(--border);
   border-radius: var(--radius); box-shadow: var(--shadow-sm);
   padding: 10px 14px; font-size: 13px; line-height: 1.6;
@@ -285,6 +300,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .tab:hover { border-color: var(--accent); }
 .tab.fixed { opacity: 0.75; } /* 固定分类只做轻微淡化 */
 .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); box-shadow: 0 2px 8px rgba(4,208,90,0.2); }
+.tab.active .cat-actions button { color: rgba(255,255,255,0.85) !important; background: transparent !important; }
 
 .tab-add {
   padding: 6px 11px; background: var(--accent); color: #fff;
@@ -329,7 +345,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   opacity: 0.6;
 }
 .cat-edit-mode .tab:not(.fixed) .cat-actions button {
-  background: var(--bg3); border: none; color: var(--text2);
+  background: transparent; border: none; color: var(--text2);
   width: 21px; height: 21px; border-radius: 4px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   transition: all 0.15s;
@@ -358,7 +374,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .search-wrap input {
   flex: 1; background: var(--bg2); border: 1px solid var(--border);
-  border-radius: 9px; color: var(--text); padding: 8px 12px; font-size: 13px; font-family: inherit;
+  border-radius: 9px; color: var(--text); padding: 7px 12px; font-size: 13px; font-family: inherit;
   transition: border-color 0.2s;
   padding-right: 30px;
 }
@@ -429,7 +445,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
   display: inline-flex; margin-left: 6px; position: static;
 }
 .lib-edit-mode .tag-card .actions button {
-  background: var(--bg3); border: none; color: var(--text2);
+  background: transparent; border: none; color: var(--text2);
   width: 22px; height: 22px; border-radius: 5px; cursor: pointer;
   font-size: 10px; display: inline-flex; align-items: center; justify-content: center;
   transition: all 0.15s;
@@ -486,7 +502,7 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .parse-left .image-upload-area.dragover { border-color: var(--accent); background: var(--accent-light); }
 .parse-left .image-upload-hint { font-size: 13px; color: var(--text2); text-align: center; }
 .parse-left .image-preview { max-width: 100%; max-height: 100%; border-radius: var(--radius); object-fit: contain; }
-.parse-left .image-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.parse-left .image-actions { display: flex; gap: 8px; flex-shrink: 0; margin: 2px 0; }
 .parse-left .image-actions button {
   background: var(--bg3); border: 1px solid var(--border); color: var(--text);
   padding: 7px 14px; border-radius: var(--radius); cursor: pointer; font-size: 13px;
@@ -500,12 +516,11 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .prompt-result {
   flex: 1; background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 10px 14px; font-size: 13px;
-  line-height: 1.6; resize: vertical; font-family: inherit; color: var(--text);
-  overflow-y: auto; min-height: 50px;
+  line-height: 1.6; resize: none; font-family: inherit; color: var(--text);
+  height: 120px; margin-bottom: 4px;
 }
 .prompt-result:focus { border-color: var(--accent); outline: none; }
 .prompt-result::placeholder { color: var(--text3); }
-
 .parse-left .reverse-add-actions {
   display: flex; gap: 8px; flex-shrink: 0;
 }
@@ -518,10 +533,11 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
 .parse-right { display: flex; flex-direction: column; gap: 12px; padding: 0 16px 14px; }
 .parse-right textarea {
-  flex-shrink: 0; width: 100%; min-height: 80px; max-height: 160px;
+  flex-shrink: 0; width: 100%; height: 180px;
   background: var(--bg); border: 1px solid var(--border);
   border-radius: var(--radius); color: var(--text); padding: 10px 12px;
-  font-size: 13px; resize: vertical; font-family: inherit;
+  font-size: 13px; resize: none; font-family: inherit;
+  margin-top: -12px;
 }
 .parse-right textarea:focus { border-color: var(--accent); outline: none; }
 .parse-right .parse-options {
@@ -1110,12 +1126,12 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 .subcat-actions .btn-sub-edit:hover { background: var(--accent-light); color: var(--accent); }
 .subcat-tags { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 2px 0; }
 /* 大类 tab 上的"加子类"按钮 */
-.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-add-sub {
-  background: none; border: none; cursor: pointer; color: var(--accent);
+.cat-edit-mode .tab:not(.fixed) .btn-cat-add-sub {
+  background: none; border: none; cursor: pointer; color: #4A4035;
   width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center;
 }
-.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-add-sub svg { width: 13px; height: 13px; }
-.cat-edit-mode .tab:not(.fixed) .cat-actions .btn-cat-add-sub:hover { background: var(--accent-light); border-radius: 4px; }
+.cat-edit-mode .tab:not(.fixed) .btn-cat-add-sub svg { width: 13px; height: 13px; }
+.cat-edit-mode .tab:not(.fixed) .btn-cat-add-sub:hover { background: var(--accent-light); border-radius: 4px; }
 .split-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 4px; }
 .split-preset { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; color: var(--text2); cursor: pointer; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); transition: all 0.15s; }
 .split-preset:has(input:checked) { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
