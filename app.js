@@ -95,8 +95,116 @@ const ICON_SVG = {
   '🌐': _C(12, 12, 10) + '<line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>',
   '🔛': '<rect x="2" y="8" width="20" height="8" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="12" r="3" fill="currentColor" stroke="none"/>',
 };
-function renderIcon(key) { return `<span class="icon-svg">${ICON_SVG[key] || key}</span>`; }
-function iconSvg(key) { return ICON_SVG[key] || key; }
+
+// ========== IconPark SVG Icons ==========
+const ICP = {
+  "✏️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 42H43\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M11 26.7199V34H18.3172L39 13.3081L31.6951 6L11 26.7199Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "⭐": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M23.9986 5L17.8856 17.4776L4 19.4911L14.0589 29.3251L11.6544 43L23.9986 36.4192L36.3454 43L33.9586 29.3251L44 19.4911L30.1913 17.4776L23.9986 5Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🎨": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 50 50\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M16.9893 23.6108L26.8888 33.5103\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M16.9893 23.6108L8.50398 32.0961C5.77031 34.8298 5.77031 39.2619 8.50398 41.9956V41.9956C11.2376 44.7293 15.6698 44.7293 18.4035 41.9956L26.8888 33.5103\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M16.9893 33.5104L12.7466 37.753\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M26.8887 33.5104L41.7961 27.0781C44.4833 25.9186 45.6045 22.6991 43.8816 20.3333C39.7179 14.6162 34.1044 9.60358 29.9632 6.53609C27.6736 4.84022 24.6332 5.89535 23.5044 8.5114L16.9892 23.6109L26.8887 33.5104Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🏞️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M14 28C17 28 26.5 29.5 26.5 33C26.5 36.5 21.394 35.7386 19 36C16.9274 36 12 36 12 39C12 43 32.5447 44 36.5 44\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M31 15C31 10.7333 26.7297 4 20.805 4C14.8804 4 10.333 12 8.54511 19.4667C6.7572 26.9333 7.01261 36 7.01261 36\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M26 24C26 21.5 27.4 17 32 17C36 17 38.2 21.0424 39 24.5C39.8 27.9576 40 33 40 33\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🎭": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M14 14H34C39.5228 14 44 18.4772 44 24V27C44 34.1797 38.1797 40 31 40H24H17C9.8203 40 4 34.1797 4 27V24C4 18.4772 8.47715 14 14 14Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M18 27H30\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M24 21V33\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M4 25.0421V12.0145C4.00003 9.7124 5.86624 7.84619 8.16833 7.84619C9.24067 7.84619 10.2718 8.25946 11.0472 9.00009C12.6463 10.5273 13.7875 12.194 14.4707 14.0002\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M44 25.0421V12.7656C44 10.2925 41.9952 8.2876 39.522 8.2876C38.1474 8.2876 36.8489 8.91898 36 10.0002C34.9552 11.3308 33.9552 12.6641 33 14.0002\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🧍": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M24 20C27.866 20 31 16.866 31 13C31 9.13401 27.866 6 24 6C20.134 6 17 9.13401 17 13C17 16.866 20.134 20 24 20Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6 40.8V42H42V40.8C42 36.3196 42 34.0794 41.1281 32.3681C40.3611 30.8628 39.1372 29.6389 37.6319 28.8719C35.9206 28 33.6804 28 29.2 28H18.8C14.3196 28 12.0794 28 10.3681 28.8719C8.86278 29.6389 7.63893 30.8628 6.87195 32.3681C6 34.0794 6 36.3196 6 40.8Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "👤": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"24\" cy=\"12\" r=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M42 44C42 34.0589 33.9411 26 24 26C14.0589 26 6 34.0589 6 44\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "📷": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M15 12L18 6H30L33 12H15Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"4\" y=\"12\" width=\"40\" height=\"30\" rx=\"3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M24 35C28.4183 35 32 31.4183 32 27C32 22.5817 28.4183 19 24 19C19.5817 19 16 22.5817 16 27C16 31.4183 19.5817 35 24 35Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🏷️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M8 44L8 6C8 4.89543 8.89543 4 10 4H38C39.1046 4 40 4.89543 40 6V44L24 35.7273L8 44Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M16 18H32\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🗑️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M15 12L16.2 5H31.8L33 12\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M6 12H42\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M37 12L35 43H13L11 12H37Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M19 35H29\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg>",
+  "✕": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M8 8L40 40\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M8 40L40 8\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🔍": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M21 38C30.3888 38 38 30.3888 38 21C38 11.6112 30.3888 4 21 4C11.6112 4 4 11.6112 4 21C4 30.3888 11.6112 38 21 38Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M26.6568 14.3431C25.2091 12.8954 23.2091 12 21 12C18.7909 12 16.7909 12.8954 15.3431 14.3431\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M33.2218 33.2218L41.7071 41.7071\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "⚙️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\"><g><g transform=\"translate(4.000000, 4.000000)\"><polygon stroke=\"currentColor\" fill=\"none\" points=\"20 1.74860126e-15 14 6 6 6 6 14 1.74860126e-15 20 6 26 6 34 14 34 20 40 26 34 34 34 34 26 40 20 34 14 34 6 26 6\" stroke-linejoin=\"round\" stroke-width=\"4\" fill-rule=\"nonzero\"/><circle stroke=\"currentColor\" fill=\"none\" cx=\"20\" cy=\"20\" r=\"6\" stroke-linejoin=\"round\" stroke-width=\"4\" fill-rule=\"nonzero\"/></g></g></svg>",
+  "🧩": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\"><g><g transform=\"translate(4.000000, 4.000000)\"><path d=\"M0,20 L0,8 L9,8 L9,6 C9,2.6862915 11.6862915,0 15,0 C18.3137085,0 21,2.6862915 21,6 L21,8 L30,8 L30,20 L34,20 C37.3137085,20 40,22.6862915 40,26 C40,29.3137085 37.3137085,32 34,32 L30,32 L30,40 L0,40 L0,32 L4,32 C7.3137085,32 10,29.3137085 10,26 C10,22.6862915 7.3137085,20 4,20 L0,20 Z\" stroke-linejoin=\"round\" stroke-width=\"4\" stroke=\"currentColor\" fill=\"none\" fill-rule=\"nonzero\"/></g></g></svg>",
+  "📋": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M13 12.4316V7.8125C13 6.2592 14.2592 5 15.8125 5H40.1875C41.7408 5 43 6.2592 43 7.8125V32.1875C43 33.7408 41.7408 35 40.1875 35H35.5163\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M32.1875 13H7.8125C6.2592 13 5 14.2592 5 15.8125V40.1875C5 41.7408 6.2592 43 7.8125 43H32.1875C33.7408 43 35 41.7408 35 40.1875V15.8125C35 14.2592 33.7408 13 32.1875 13Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "📤": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><mask id=\"icon-1e2f56a14871de7\" maskUnits=\"userSpaceOnUse\" x=\"0\" y=\"0\" width=\"48\" height=\"48\" style=\"mask-type: alpha\"><rect width=\"48\" height=\"48\" fill=\"currentColor\"/></mask><g mask=\"url(#icon-1e2f56a14871de7)\"><path d=\"M6 24.0083V42H42V24\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M33 15L24 6L15 15\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M23.9917 32V6\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></g></svg>",
+  "📥": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6 24.0083V42H42V24\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M33 23L24 32L15 23\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M23.9917 6V32\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🔑": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M22.8682 24.298C25.4105 26.7933 26.4138 30.4523 25.4971 33.886C24.5805 37.3198 21.8844 40.0016 18.4325 40.9135C14.9806 41.8253 11.3022 40.8273 8.79375 38.2984C5.02208 34.4138 5.07602 28.2392 8.91499 24.4204C12.754 20.6016 18.9613 20.548 22.8664 24.2998L22.8682 24.298Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M23 24L40 7\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M30.3054 16.9L35.7339 22.3L42.0673 16L36.6387 10.6L30.3054 16.9Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🤖": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"9\" y=\"17\" width=\"30\" height=\"26\" rx=\"2\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M33 9L28 17\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M15 9L20 17\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"34\" cy=\"7\" r=\"2\" stroke=\"currentColor\" stroke-width=\"4\"/><circle cx=\"14\" cy=\"7\" r=\"2\" stroke=\"currentColor\" stroke-width=\"4\"/><rect x=\"16\" y=\"24\" width=\"16\" height=\"8\" rx=\"4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M9 24H4V34H9\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M39 24H44V34H39\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🖼️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M39 6H9C7.34315 6 6 7.34315 6 9V39C6 40.6569 7.34315 42 9 42H39C40.6569 42 42 40.6569 42 39V9C42 7.34315 40.6569 6 39 6Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18 23C20.7614 23 23 20.7614 23 18C23 15.2386 20.7614 13 18 13C15.2386 13 13 15.2386 13 18C13 20.7614 15.2386 23 18 23Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M27.7901 26.2193C28.6064 25.1268 30.2528 25.1537 31.0329 26.2724L39.8077 38.856C40.7322 40.1819 39.7835 42 38.1671 42H16L27.7901 26.2193Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "+": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"3\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M24 16V32\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M16 24L32 24\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🌐": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M37.8261 4C41.6276 7.58886 44 12.6753 44 18.3158C44 29.1871 35.1871 38 24.3158 38C18.6753 38 13.5889 35.6276 10 31.8261\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M24 32C31.732 32 38 25.732 38 18C38 10.268 31.732 4 24 4C16.268 4 10 10.268 10 18C10 25.732 16.268 32 24 32Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 38V44\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18 44H30\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🔛": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M42 19H5.99998\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M30 7L42 19\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6.79897 29H42.799\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6.79895 29L18.799 41\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "📦": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"6\" y=\"12\" width=\"36\" height=\"30\" rx=\"2\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M17.9498 24.0083L29.9498 24.0083\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6 13L13 5H35L42 13\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🗺️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M48 0H0V48H48V0Z\" fill=\"white\" fill-opacity=\"0.01\"/><path d=\"M17 12L4 6V36L17 42L31 36L44 42V12L31 6L17 12Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M31 6V36\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M17 12V42\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M10.5 9L17 12L31 6L37.5 9\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M10.5 39L17 42L31 36L37.5 39\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "💡": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M38 21L43 30L38 31V37H35L29 36L28 43H13L11 32.619C7.92077 29.7028 6 25.5757 6 21C6 12.1634 13.1634 5 22 5C30.8366 5 38 12.1634 38 21Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M17 19C17 16.2386 19.2386 14 22 14C24.7614 14 27 16.2386 27 19C27 21.7614 24.7614 24 22 24V27\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22 33V34\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "✨": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\"><g><g transform=\"translate(5.000000, 4.000000)\"><path d=\"M25,0 L25,6 M34.8994949,4.10050506 L30.6568542,8.34314575 M39,14 L33,14 M34.8994949,23.8994949 L30.6568542,19.6568542 M25,28 L25,22 M15.1005051,23.8994949 L19.3431458,19.6568542 M11,14 L17,14 M15.1005051,4.10050506 L19.3431458,8.34314575\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"4\" stroke=\"currentColor\" fill=\"none\" fill-rule=\"evenodd\"/><path d=\"M24.5857864,14.4142136 L0.544155877,38.4558441\" transform=\"translate(12.564971, 26.435029) rotate(-0.000000) translate(-12.564971, -26.435029) \" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"4\" stroke=\"currentColor\" fill=\"none\" fill-rule=\"evenodd\"/></g></g></svg>",
+  "🐾": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M19 8C20.7657 15.8788 21.7826 32.8365 13.3074 36.6184C12.8258 36.9335 11.1564 37.4693 7.68928 37.0911C5.68266 36.8722 3.40467 39.3542 6.56568 42.7639C7.34236 43.6016 9.06974 44.4657 13.3074 43.7093H21.0122C22.9384 43.7093 26.1166 41.3457 29.1985 35.6729C30.3221 34.0971 33.5324 30.8511 37.3848 30.4729C39.7926 30.3153 44.2228 28.3929 42.6819 21.9637C39.9259 15.5052 33.541 9.29458 32 4\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "👔": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M9 9L18 4H30L39 9L43 24L35 30V44H13V30L5 24L9 9Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M13 31L13 24\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M35 31L35 24\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🌦️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M9.45455 30.9942C6.14242 28.461 4 24.4278 4 19.8851C4 12.2166 10.1052 6 17.6364 6C23.9334 6 29.2336 10.3462 30.8015 16.2533C32.0353 15.6159 33.431 15.2567 34.9091 15.2567C39.9299 15.2567 44 19.4011 44 24.5135C44 28.3094 41.7562 31.5716 38.5455 33\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M26 42C29.3137 42 32 39.3137 32 36C32 32.6863 29.3137 30 26 30C22.6863 30 20 32.6863 20 36C20 39.3137 22.6863 42 26 42Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M22.2426 15.7574C21.1569 14.6716 19.6569 14 18 14C14.6863 14 12 16.6863 12 20C12 21.6569 12.6716 23.1569 13.7574 24.2426\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+
+  "🐟": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><g clip-path=\"url(#icon-173b7a032b7766f6)\"><path d=\"M15.3808 32.8442C9.72351 31.4296 0.531437 34.9654 9.72365 38.5008C13.2595 47.6935 16.7947 38.5008 15.3808 32.8442Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M22.4823 10.2474C17.5789 10.2343 11.2504 11.7843 10.4533 13.9753C9.87553 15.5636 12.878 17.6766 16.7036 18.7931\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M37.9776 25.7423C37.9907 30.6457 36.4407 36.9743 34.2497 37.7713C32.6614 38.3491 30.5484 35.3466 29.4319 31.521\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M37.9993 25.7649C44.6625 19.7001 40.1249 8.09147 40.1249 8.09147C40.1249 8.09147 28.1079 4.55981 22.4511 10.2167C16.7942 15.8735 15.38 32.8441 15.38 32.8441C15.38 32.8441 31.3362 31.8297 37.9993 25.7649Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M38.0075 25.773C38.0075 25.773 31.29 24.7124 27.4009 20.8233C23.5118 16.9342 22.4512 10.2167 22.4512 10.2167\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"33.7656\" cy=\"14.4593\" r=\"2\" transform=\"rotate(45 33.7656 14.4593)\" fill=\"currentColor\"/><path d=\"M40.9998 20.9448C40.4591 22.7045 39.5215 24.3794 37.9993 25.7649C36.3518 27.2643 34.1363 28.4551 31.7344 29.3981\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M27.0002 7.65639C25.3026 8.1445 23.7176 8.95037 22.4513 10.2167C21.2665 11.4015 20.2678 13.0825 19.4293 15\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></g><defs><clipPath id=\"icon-173b7a032b7766f6\"><rect width=\"48\" height=\"48\" fill=\"currentColor\"/></clipPath></defs></svg>",
+  "🐦": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M9 14.0003L4 20.0689C4 20.0689 5.84913 27.035 11 32.0006C20.8896 41.5344 35.3341 35.304 41 31.0006C46.3568 26.6309 43.7169 25.6695 42 26.0006L37 27.0006C46.0654 12.6997 43.5754 11.173 41 12.0006L32 16.0006C26.2311 19.1785 23.5 17.5006 22 16.0006L19 13.0002C14.5 9 10.0302 12.8417 9 14.0003Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"14\" cy=\"20\" r=\"2\" fill=\"currentColor\"/></svg>",
+  "🐝": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M30 28.6957C30 35 27.3137 44 24 44C20.6863 44 18 35 18 28.6957C18 24.9977 20.6863 22 24 22C27.3137 22 30 24.9977 30 28.6957Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M11.4783 17C13.9884 17 20 19.2386 20 22C20 24.7614 13.9884 27 11.4783 27C8.96817 27 6 24.7614 6 22C6 19.2386 8.96817 17 11.4783 17Z\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M36.5217 17C34.0116 17 28 19.2386 28 22C28 24.7614 34.0116 27 36.5217 27C39.0318 27 42 24.7614 42 22C42 19.2386 39.0318 17 36.5217 17Z\" stroke=\"currentColor\" stroke-width=\"4\"/><rect x=\"19\" y=\"9\" width=\"10\" height=\"13\" rx=\"5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M28 10C28 6.68629 30.6863 4 34 4\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M21 10C21 6.68629 17.866 4 14 4\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/></svg>",
+  "🐶": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M16.9999 10L14.9997 5C12.833 5.83333 8.19976 10.8 8.99976 18\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M30.9999 10L33.0001 5C35.1668 5.83333 39.8 10.8 39 18\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M42 28.5C42 38.165 33.9411 43 24 43C14.0589 43 6 38.165 6 28.5C6 18.835 14.0589 9 24 9C33.9411 9 42 18.835 42 28.5Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><circle cx=\"20\" cy=\"17\" r=\"2\" fill=\"currentColor\"/><circle cx=\"28\" cy=\"17\" r=\"2\" fill=\"currentColor\"/><path d=\"M24 26C24 27.6569 24.5 31.5 21 31.5C19.3431 31.5 18 30.1569 18 28.5\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24.0249 26C24.0249 27.6569 23.5249 31.5 27.0249 31.5C28.6818 31.5 30.0249 30.1569 30.0249 28.5\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M26 25.75C26 26.4404 24 27.5 24 27.5C24 27.5 22 26.4404 22 25.75C22 25.0596 22.5 24.5 24 24.5C25.5 24.5 26 25.0596 26 25.75Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🦋": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M4.99996 12.0003C8.66364 7.70613 19.0812 18.8191 24 25C28.9188 18.8191 39.3363 7.70599 43 12.0001C43.6785 12.6507 44.4425 14.877 42 18C41.3214 18.9759 40.1857 21.7059 41 26C41 27.1386 39.8849 28.9519 35 27C37.3746 28.6266 41.8495 33.0962 39 37C36.2862 40.4158 29.9646 44.4569 26 35L24 31L22 35C18.0354 44.4569 11.7138 40.4158 9 37C6.15047 33.0962 10.6253 28.6268 12.9999 27.0003C8.11495 28.9521 6.99987 27.1389 6.99987 26.0003C7.81413 21.7061 6.67843 18.9762 5.99988 18.0003C3.55742 14.8773 4.3215 12.6509 4.99996 12.0003Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24.0322 23C23.534 17.8642 28.9135 7 33 7\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M23.9678 23C24.466 17.8642 19.0865 7 15 7\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🐰": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><ellipse cx=\"24\" cy=\"32\" rx=\"17\" ry=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><circle cx=\"18\" cy=\"29.4121\" r=\"2\" fill=\"currentColor\"/><circle cx=\"24\" cy=\"35.4121\" r=\"2\" fill=\"currentColor\"/><circle cx=\"30\" cy=\"29.4121\" r=\"2\" fill=\"currentColor\"/><path d=\"M12.6672 22C11.3521 18.8333 9.06034 11.1127 10.413 5.91273C10.7887 4.91273 12.2164 3.21273 14.9217 4.41273C15.2974 4.57935 16.1616 5.2126 16.6125 6.4126C17.7397 8.4126 16.0489 21 16.0489 21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M35.3871 22C36.7025 18.8333 38.9324 11.1127 37.5793 5.91273C37.2035 4.91273 35.7754 3.21273 33.0693 4.41273C32.6935 4.57935 31.8291 5.2126 31.378 6.4126C30.2505 8.4126 32.0044 20 32.0044 20\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🐸": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M19.1015 10.8942C19.5261 11.6689 19.7431 12.5226 19.772 13.4061C20.9787 13.2453 22.2252 13.1611 23.5003 13.1611C25.1295 13.1611 26.7122 13.2986 28.2249 13.5577C28.2328 12.6203 28.4497 11.7131 28.8985 10.8942C30.6575 7.68502 35.3132 7.04762 39.2973 9.47057C43.2814 11.8935 45.0852 16.4593 43.3262 19.6685C42.8986 20.4486 42.2999 21.0768 41.5812 21.5459C42.4961 23.1006 43 24.8001 43 26.5806C43 33.9919 34.2697 40 23.5003 40C12.7308 40 4.00052 33.9919 4.00052 26.5806C4.00052 24.5994 4.62433 22.7186 5.74416 21.026C5.32121 20.6426 4.95932 20.1894 4.67378 19.6685C2.91478 16.4593 4.71859 11.8935 8.7027 9.47057C12.6868 7.04762 17.3425 7.68502 19.1015 10.8942Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><circle cx=\"12\" cy=\"17\" r=\"2\" fill=\"currentColor\"/><circle cx=\"20.1562\" cy=\"28.5762\" r=\"2\" fill=\"currentColor\"/><circle cx=\"28.1562\" cy=\"28.5762\" r=\"2\" fill=\"currentColor\"/><circle cx=\"36\" cy=\"17\" r=\"2\" fill=\"currentColor\"/></svg>",
+  "🐵": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M13.2 21C12.4312 19.531 12 17.8817 12 16.1389C12 9.98704 17.3726 5 24 5C30.6274 5 36 9.98704 36 16.1389C36 17.8817 35.5688 19.531 34.8 21\" stroke=\"currentColor\" stroke-width=\"4\"/><ellipse cx=\"24\" cy=\"31\" rx=\"15\" ry=\"12\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M30.5177 33.8742C26.8486 37.5433 20.7965 37.44 17 33.6435\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M12 23C8.68629 23 6 20.7614 6 18C6 15.2386 8.68629 13 12 13\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M36 23C39.3137 23 42 20.7614 42 18C42 15.2386 39.3137 13 36 13\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><circle cx=\"20\" cy=\"14\" r=\"2\" fill=\"currentColor\"/><circle cx=\"28\" cy=\"14\" r=\"2\" fill=\"currentColor\"/></svg>",
+  "👑": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M9 40L4 17L14 22L24 8L34 22L44 17L39 40H9Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M24 33C26.2091 33 28 31.2091 28 29C28 26.7909 26.2091 25 24 25C21.7909 25 20 26.7909 20 29C20 31.2091 21.7909 33 24 33Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🧭": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 44L22.6875 15.5\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M36 44L25.3125 15.5\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"24\" cy=\"12\" r=\"4\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M37.5702 33C33.662 35.5307 29.0026 37 24 37C18.9974 37 14.3381 35.5307 10.4299 33\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 8V4\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🎁": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M41 44V20H7V44H41Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 44V20\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M41 44H7\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"4\" y=\"12\" width=\"40\" height=\"8\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M16 4L24 12L32 4\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "❄️": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M24 4V44\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6.72461 14L41.3656 34\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6.71923 33.9773L41.2814 14.0228\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M12 10L15 19L6 21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6 27L15 29L12 38\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M36 10L33 19L42 21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M42 27L33 29L36 38\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18 7L24 13L30 7\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18 41L24 35L30 41\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🎤": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"16\" y=\"4\" width=\"16\" height=\"28\" rx=\"8\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M10 21V24C10 31.732 16.268 38 24 38V38C31.732 38 38 31.732 38 24V21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 5V11\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M16 16H21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M27 16H32\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M16 22H21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M27 22H32\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 38V44\" stroke=\"currentColor\" stroke-width=\"4\"/><path d=\"M16 44H32\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🎧": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M42 30V24.4615C42 14.2655 33.9411 6 24 6C14.0589 6 6 14.2655 6 24.4615V30\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M34 32C34 29.7909 35.7909 28 38 28H42V42H38C35.7909 42 34 40.2091 34 38V32Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M42 32H44C45.1046 32 46 32.8954 46 34V36C46 37.1046 45.1046 38 44 38H42V32Z\" fill=\"currentColor\"/><path d=\"M6 32H4C2.89543 32 2 32.8954 2 34V36C2 37.1046 2.89543 38 4 38H6V32Z\" fill=\"currentColor\"/><path d=\"M6 28H10C12.2091 28 14 29.7909 14 32V38C14 40.2091 12.2091 42 10 42H6V28Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🏅": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M44 4H31L27 14.3001C31.4614 15.2057 35.2038 18.0914 37.2699 22L44 4Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M17 4H4L10.7301 22C12.7962 18.0914 16.5386 15.2057 21 14.3001L17 4Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M39 29C39 37.2843 32.2843 44 24 44C15.7157 44 9 37.2843 9 29C9 26.4718 9.62546 24.0897 10.7301 22C12.7962 18.0914 16.5386 15.2057 21 14.3001C21.9693 14.1033 22.9726 14 24 14C25.0274 14 26.0307 14.1033 27 14.3001C31.4614 15.2057 35.2038 18.0914 37.2699 22C38.3745 24.0897 39 26.4718 39 29Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 35V22L21 23M24 35H28M24 35H20\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🎃": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" xmlns=\"http://www.w3.org/2000/svg\"><g><path d=\"M8,44 L12,40 L16,44 L20,38 L24,44 L28,38 L32,44 L36,40 L40,44 L40,20 C40,11.163444 32.836556,4 24,4 C15.163444,4 8,11.163444 8,20 L8,44 Z\" stroke=\"currentColor\" stroke-width=\"4\" fill=\"none\" fill-rule=\"nonzero\" stroke-linejoin=\"round\"/><path d=\"M19,20 L21,20\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" fill-rule=\"evenodd\"/><path d=\"M31,20 L33,20\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\" fill=\"none\" fill-rule=\"evenodd\"/></g></svg>",
+  "🍬": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><circle cx=\"24\" cy=\"24\" r=\"10\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M24 28C21.7909 28 20 26.2091 20 24\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\"/><path d=\"M16.6875 16.8125L3.90824 14.9668L14.8418 4.03324L16.6875 16.8125Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M31.3125 31.3125L44.0918 33.1582L33.1582 44.0918L31.3125 31.3125Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/></svg>",
+  "🧲": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M6 10V26C6 35.9411 14.0589 44 24 44C33.9411 44 42 35.9411 42 26V10M14 10V26C14 31.5228 18.4772 36 24 36C29.5228 36 34 31.5228 34 26V10\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M14 4H6V10H14V4Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M34 4H42V10H34V4Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🎩": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10 10C10.5 13 11 14.5 11.5 18C11.9 20.8 12 25.1667 12 27C9.83333 28 5 30 5 34C5 38 10 43 24 43C38 43 43 38 43 34C43 30 36 27 36 27C36 27 36 21.5 36.5 18C37 14.5 37.5 13 38 10\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M36 27C36 31 35 35 23.5 35\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><ellipse cx=\"24\" cy=\"10\" rx=\"14\" ry=\"5\" stroke=\"currentColor\" stroke-width=\"4\"/></svg>",
+  "🔭": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><rect x=\"6\" y=\"5\" width=\"12\" height=\"38\" rx=\"6\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><rect x=\"30\" y=\"5\" width=\"12\" height=\"38\" rx=\"6\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M12 43C15.3137 43 18 40.3137 18 37C18 33.6863 15.3137 31 12 31C8.68629 31 6 33.6863 6 37C6 40.3137 8.68629 43 12 43Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M36 43C39.3137 43 42 40.3137 42 37C42 33.6863 39.3137 31 36 31C32.6863 31 30 33.6863 30 37C30 40.3137 32.6863 43 36 43Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M30 21C30 17.6863 27.3137 15 24 15C20.6863 15 18 17.6863 18 21\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M30 31C30 27.6863 27.3137 25 24 25C20.6863 25 18 27.6863 18 31\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🚲": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M48 0H0V48H48V0Z\" fill=\"white\" fill-opacity=\"0.01\"/><path d=\"M10.5 42C15.1944 42 19 38.1944 19 33.5C19 28.8056 15.1944 25 10.5 25C5.80558 25 2 28.8056 2 33.5C2 38.1944 5.80558 42 10.5 42Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M37 42C41.9706 42 46 37.9706 46 33C46 28.0294 41.9706 24 37 24C32.0294 24 28 28.0294 28 33C28 37.9706 32.0294 42 37 42Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M18.9971 6H27.9976L37.0004 33\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path fill-rule=\"evenodd\" clip-rule=\"evenodd\" d=\"M11.0576 33L31.6821 16.7632L11.0576 33Z\" fill=\"none\"/><path d=\"M11.0576 33L31.6821 16.7632\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M31.6816 15H40.1537L41.9998 10\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M8 15.9737H15\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M15 16L18.2727 26.4211\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "🚆": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M9 8.83932C9 7.90724 9.43829 7.03279 10.2715 6.61502C12.2462 5.62486 16.6123 4 24 4C31.3877 4 35.7538 5.62486 37.7285 6.61502C38.5617 7.0328 39 7.90724 39 8.83932V36C39 37.1046 38.1046 38 37 38H11C9.89543 38 9 37.1046 9 36V8.83932Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M34 38V42\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M14 38V42\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M20.5 32C20.5 32.8284 19.8284 33.5 19 33.5C18.1716 33.5 17.5 32.8284 17.5 32C17.5 31.1716 18.1716 30.5 19 30.5C19.8284 30.5 20.5 31.1716 20.5 32Z\" fill=\"currentColor\" stroke=\"currentColor\"/><path d=\"M30.5 32C30.5 32.8284 29.8284 33.5 29 33.5C28.1716 33.5 27.5 32.8284 27.5 32C27.5 31.1716 28.1716 30.5 29 30.5C29.8284 30.5 30.5 31.1716 30.5 32Z\" fill=\"currentColor\" stroke=\"currentColor\"/><path d=\"M20 44L28 44\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"9\" y=\"12\" width=\"30\" height=\"14\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linejoin=\"round\"/><path d=\"M24 12V26\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M20 12L28 12\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M20 26L28 26\" stroke=\"currentColor\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",
+  "⛵": "<svg width=\"1em\" height=\"1em\" viewBox=\"0 0 48 48\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M8 28L6 24H42L40 28\" stroke=\"currentColor\" stroke-width=\"4\" stroke-miterlimit=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M28.0001 4L10 24H28.0001V4Z\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"4\" stroke-miterlimit=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M28 11L38 24H28V11Z\" stroke=\"currentColor\" stroke-width=\"4\" stroke-miterlimit=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M4 34L6.5 35.3514C8.1 36.2162 9.9 36.2162 11.5 35.3514C13.1 34.4865 14.9 34.4865 16.5 35.3514C18.1 36.2162 19.9 36.2162 21.5 35.3514C23.1 34.4865 24.9 34.4865 26.5 35.3514C28.1 36.2162 29.9 36.2162 31.5 35.3514C33.1 34.4865 34.9 34.4865 36.5 35.3514C38.1 36.2162 39.9 36.2162 41.5 35.3514L44 34\" stroke=\"currentColor\" stroke-width=\"4\" stroke-miterlimit=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M4 40L6.5 41.3514C8.1 42.2162 9.9 42.2162 11.5 41.3514C13.1 40.4865 14.9 40.4865 16.5 41.3514C18.1 42.2162 19.9 42.2162 21.5 41.3514C23.1 40.4865 24.9 40.4865 26.5 41.3514C28.1 42.2162 29.9 42.2162 31.5 41.3514C33.1 40.4865 34.9 40.4865 36.5 41.3514C38.1 42.2162 39.9 42.2162 41.5 41.3514L44 40\" stroke=\"currentColor\" stroke-width=\"4\" stroke-miterlimit=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>",};
+
+function renderIcon(key) { return `<span class="icon-svg">${ICP[key] || ICON_SVG[key] || key}</span>`; }
+function iconSvg(key) { return ICP[key] || ICON_SVG[key] || key; }
+
+// 自定义分类下拉框（支持 SVG 图标）
+function buildCatSelect(container, list, selectedVal, onChange) {
+  container.style.display = 'none';
+  // Remove old wrapper if exists
+  if (container._catWrap) { container._catWrap.remove(); container._catWrap = null; }
+  const wrap = document.createElement('div');
+  wrap.className = 'cat-select-wrapper';
+  container.insertAdjacentElement('afterend', wrap);
+  container._catWrap = wrap;
+
+  const trigger = document.createElement('div');
+  trigger.className = 'cat-select-trigger';
+  const opts = document.createElement('div');
+  opts.className = 'cat-select-options hidden';
+  const close = () => opts.classList.add('hidden');
+  const renderItem = (item) => renderIcon(item.icon || '📁') + ' ' + (item.label || '');
+  list.forEach(item => {
+    const opt = document.createElement('div');
+    opt.className = 'cat-select-option depth-' + (item.depth || 0) + (item.value === selectedVal ? ' selected' : '');
+    opt.innerHTML = renderItem(item);
+    if (item.depth > 0) opt.style.paddingLeft = (10 + (item.depth || 0) * 18) + 'px';
+    if (!item.depth) opt.style.fontWeight = '600';
+    opt.onclick = (e) => { e.stopPropagation();
+      opts.querySelectorAll('.cat-select-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      trigger.innerHTML = opt.innerHTML + '<span class=\"cat-select-arrow\">▾</span>';
+      close(); if (onChange) onChange(item.value);
+    };
+    opts.appendChild(opt);
+  });
+  const sel = list.find(i => i.value === selectedVal) || list[0];
+  trigger.innerHTML = (sel ? renderItem(sel) : '请选择') + '<span class="cat-select-arrow">▾</span>';
+  trigger.onclick = () => { opts.classList.remove('hidden'); };
+  const docHandler = (e) => { if (!wrap.contains(e.target)) close(); };
+  document.addEventListener('click', docHandler);
+  wrap._docHandler = docHandler;
+  // Track selected state
+  opts.addEventListener('click', (e) => {
+    const opt = e.target.closest('.cat-select-option');
+    if (!opt) return;
+    opts.querySelectorAll('.cat-select-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    trigger.innerHTML = opt.innerHTML + '<span class="cat-select-arrow">▾</span>';
+  });
+  wrap.appendChild(trigger);
+  wrap.appendChild(opts);
+  // Return cleanup
+  return { hide: () => { wrap.style.display = 'none'; }, show: () => { wrap.style.display = ''; } };
+}
 
 // ========== 状态 ==========
 let categories = Storage.get("categories", DEFAULT_CATEGORIES);
@@ -909,22 +1017,14 @@ function bindCatEditActions() {
     const id = +b.dataset.id;
     const cat = categories.find(c => c.id === id);
     if (!cat) return;
-    const name = prompt("修改分类名称:", cat.name);
-    if (name && name.trim()) cat.name = name.trim();
-    const icon = prompt("修改图标（emoji）:", cat.icon);
-    if (icon && icon.trim()) cat.icon = icon.trim();
-    Storage.set("categories", categories); renderTabs(); renderLibrary();
+    openCatModal({ mode: 'edit', cat });
   });
 
   // 加子类
   $$('.btn-cat-add-sub').forEach(b => b.onclick = (e) => {
     e.stopPropagation();
     const parentId = +b.dataset.id;
-    const name = prompt("子分类名称:");
-    if (!name || !name.trim()) return;
-    const icon = prompt("图标（emoji，默认📁）:") || "📁";
-    categories.push({ id: nextId++, parentId, name: name.trim(), icon: icon.trim() });
-    Storage.set("categories", categories); renderTabs(); renderLibrary();
+    openCatModal({ mode: 'add-sub', parentId });
   });
 }
 
@@ -1466,8 +1566,8 @@ function openTagModal(handwrite, id) {
   const wrap = $("#input-subcat-wrap");
   if (big && big.parentId == null) {
     const subs = categories.filter(c => c.parentId === big.id);
-    sel.innerHTML = `<option value="${big.id}">未分组</option>` + subs.map(s => `<option value="${s.id}">${s.icon} ${s.name}</option>`).join("");
-    sel.value = String(id ? t.categoryId : big.id);
+    const inputItems = [{ value: big.id, icon: null, label: '未分组', depth: 0 }, ...subs.map(s => ({ value: s.id, icon: s.icon, label: s.name, depth: 1 }))];
+    buildCatSelect(sel, inputItems, id ? t.categoryId : big.id, (val) => { sel.dataset.val = val; });
     wrap.classList.remove("hidden");
   } else {
     wrap.classList.add("hidden");
@@ -1479,7 +1579,7 @@ function confirmTag() {
   if (!cn) return alert("不能为空");
   const en = $("#input-en").value.trim() || undefined;
   const sel = $("#input-subcat");
-  const subcatVal = $("#input-subcat-wrap").classList.contains("hidden") ? null : +sel.value;
+  const subcatVal = $("#input-subcat-wrap").classList.contains("hidden") ? null : +(sel.dataset.val || sel.value);
   if (editingTagId) {
     const t = tags.find(x => x.id === editingTagId);
     if (t) { t.cn = cn; t.en = en; if (subcatVal) t.categoryId = subcatVal; invalidateEmbedding(t.id); }
@@ -1492,11 +1592,28 @@ function confirmTag() {
   }
   Storage.set("tags", tags); renderTabs(); renderLibrary(); closeModals();
 }
-function openAddCategory() {
-  const name = prompt("大类名称:"); if (!name) return;
-  const icon = prompt("图标（emoji，默认📁）:") || "📁";
-  categories.push({ id: nextId++, parentId: null, name: name.trim(), icon: icon.trim() });
-  Storage.set("categories", categories); renderTabs();
+const CAT_ICONS = [
+  { name: '常用', icons: ['⭐','🎨','🏞️','🎭','🧍','👤','👔','💡','🌈','📷','✨','🏷️','🧩','🔑','🤖','🖼️','🌐','📦','🗺️','🐾','🌦️','🔛','👑'] },
+  { name: '自然', icons: ['🌟','🌊','⛰️','🌲','🌸','☀️','🌙','🏔️','🏖️','🎇','🌠','❄️'] },
+  { name: '动物', icons: ['🐟','🐦','🐝','🐶','🦋','🐰','🐸','🐵'] },
+  { name: '娱乐', icons: ['🎵','🎸','🎬','🎯','🏆','🎪','🎮','🎲','🎡','🕹️','🥇','🎤','🎧','🏅','🎃','🍬','🎩','🔭'] },
+  { name: '旅行', icons: ['🚀','✈️','🛸','🏯','🏰','🗼','🗽','🏕️','🚲','🚆','⛵'] },
+  { name: '其他', icons: ['❤️','🔥','💎','💻','📱','🔮','📺','🔔','⚽','🧲','🎁','🧭'] },
+];
+let _catModalState = null;
+function openCatModal(opts) {
+  _catModalState = opts || {};
+  $("#cat-modal-title").textContent = opts.mode === 'edit' ? '编辑分类' : opts.mode === 'add-sub' ? '添加子分类' : '添加分类';
+  const picker = $("#cat-icon-picker");
+  const curIcon = opts.cat?.icon || '📁';
+  picker.innerHTML = CAT_ICONS.map(g => 
+    `<div class="icon-group-title">${g.name}</div>` +
+    g.icons.map(k => `<button class="icon-btn${k === curIcon ? ' selected' : ''}" data-icon="${k}">${renderIcon(k)}</button>`).join('')
+  ).join('');
+  picker.querySelectorAll('.icon-btn').forEach(btn => { btn.onclick = () => { picker.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected')); btn.classList.add('selected'); }; });
+  $("#cat-modal-name").value = opts.cat?.name || '';
+  $("#modal-category").classList.remove('hidden');
+  setTimeout(() => $("#cat-modal-name").focus(), 100);
 }
 
 // ========== 炸开解析 ==========
@@ -1505,14 +1622,18 @@ const PLACEHOLDER_HTML = '<span class="prompt-placeholder">拆分后的标签将
 // 拆分规则设置弹窗
 function openSplitSettings() {
   const current = Storage.get("promptForge.splitDelimiters", [",", "，"]);
-  const custom = current.filter(d => d !== "," && d !== "，");
-  $("#split-delim-input").value = custom.join("\n");
+  document.querySelectorAll('.split-preset input').forEach(cb => {
+    cb.checked = current.includes(cb.dataset.delim);
+  });
+  const preset = [...document.querySelectorAll('.split-preset input')].map(cb => cb.dataset.delim);
+  $("#split-delim-input").value = current.filter(d => !preset.includes(d)).join("\n");
   $("#modal-split-settings").classList.remove("hidden");
 }
 function saveSplitRules() {
+  const presets = [...document.querySelectorAll('.split-preset input:checked')].map(cb => cb.dataset.delim);
   const raw = $("#split-delim-input").value.trim();
-  const list = raw ? raw.split("\n").map(s => s.trim()).filter(Boolean) : [];
-  list.unshift("，", ",");
+  const custom = raw ? raw.split("\n").map(s => s.trim()).filter(Boolean) : [];
+  const list = [...new Set([...presets, ...custom])];
   Storage.set("promptForge.splitDelimiters", [...new Set(list)]);
   closeModals();
 }
@@ -1520,15 +1641,14 @@ function saveSplitRules() {
 // 共享规则拆分：按自定义分隔符列表拆分文本
 function splitPrompt(text, delimiters) {
   if (!text || !Array.isArray(delimiters) || !delimiters.length) return [];
-  const escaped = delimiters.map(d => d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  escaped.push(',', '，', '\\s');
+  const escaped = delimiters.map(d => d === ' ' ? '\\s' : d.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   const re = new RegExp(`[${escaped.join('')}]+`);
   return [...new Set(text.split(re).map(s => s.trim()).filter(Boolean))];
 }
 
 function doParse() {
   const text = $("#parse-input").value.trim();
-  if (!text) { _parseAtoms = []; $("#parse-result").innerHTML = PLACEHOLDER_HTML; $("#parse-stats").textContent = ""; return; }
+  if (!text) { _parseAtoms = []; $("#parse-result").innerHTML = PLACEHOLDER_HTML; $("#parse-stats").textContent = ""; $("#parse-stats").classList.add("hidden"); return; }
 
   const delimiters = Storage.get("promptForge.splitDelimiters", [",", "，"]);
   _parseAtoms = splitPrompt(text, delimiters).map(s => ({ cn: s }));
@@ -1716,14 +1836,16 @@ function renderParseResult() {
   const counts = { EXACT: 0, CONTAINS: 0, SIMILAR: 0, NEW: 0 };
   _parseAtoms.forEach(a => counts[a.match.status]++);
   const total = _parseAtoms.length;
-  $("#parse-stats").innerHTML = total
+  const _statsEl = $("#parse-stats");
+  _statsEl.innerHTML = total
     ? `共 ${total} 个：<span class="st-exact">已有 ${counts.EXACT}</span> · <span class="st-similar">相似 ${counts.SIMILAR}</span> · <span class="st-contains">近似 ${counts.CONTAINS}</span> · <span class="st-new">新词 ${counts.NEW}</span>`
     : "";
+  _statsEl.classList.toggle("hidden", !total);
   $("#parse-result").innerHTML = total ? _parseAtoms.map((a, i) => {
     const m = a.match;
     const simTxt = m.sim ? ` ${(m.sim * 100).toFixed(0)}%` : "";
     // 大类徽标：仅 AI 拆分时有 _bigId
-    const catBadge = a._bigId ? (() => { const c = categories.find(x => x.id === a._bigId); return c ? `<span class="cat-badge">${c.icon}</span>` : ""; })() : "";
+    const catBadge = a._bigId ? (() => { const c = categories.find(x => x.id === a._bigId); return c ? `<span class="cat-badge">${renderIcon(c.icon)}</span>` : ""; })() : "";
     return `<div class="tag-card ${m.status.toLowerCase()}" data-idx="${i}" data-text="${escapeHtml(a.cn)}"${a.en ? ` data-en="${escapeHtml(a.en)}"` : ""}>
       ${catBadge}<span class="cn">${escapeHtml(a.cn)}</span>${a.en ? `<span class="en">${escapeHtml(a.en)}</span>` : ""}
       <span class="badge">${STATUS_LABEL[m.status]}${simTxt}</span>
@@ -1749,6 +1871,16 @@ function renderParseResult() {
       _parseAtoms.forEach(a => { a.match = matchAtom(a, tags); });
       renderParseResult();
     };
+    const cbtn = document.getElementById("btn-parse-batch-clear");
+    if (cbtn) {
+      cbtn.onclick = () => {
+        _parseAtoms = [];
+        bar.classList.add("hidden");
+        document.getElementById("parse-result").innerHTML = PLACEHOLDER_HTML;
+        document.getElementById("parse-stats").textContent = "";
+        document.getElementById("parse-stats").classList.add("hidden");
+      };
+    }
   } else {
     bar.classList.add("hidden");
   }
@@ -1862,7 +1994,7 @@ function onParseCardClick(idx) {
       const sim = m.sim && m.candidates[0] === t ? ` <span class="sim">${(m.sim * 100).toFixed(0)}%</span>` : "";
       return `<li data-tag-id="${t.id}">
         <span class="cn">${escapeHtml(t.cn)}</span>${t.en ? `<span class="en">${escapeHtml(t.en)}</span>` : ""}
-        <span class="cat">${cat ? cat.icon + " " + cat.name : ""}</span>${sim}
+        <span class="cat">${cat ? renderIcon(cat.icon) + " " + cat.name : ""}</span>${sim}
       </li>`;
     }).join("");
   }
@@ -1880,18 +2012,23 @@ function addAtomFromParse(idx) {
   const a = _parseAtoms[idx];
   if (!a) return;
   const sel = $("#similar-cat-select");
-  sel.classList.remove("hidden");
-  sel.innerHTML = categories.filter(c => c.id !== FAV_CAT_ID).map(c => `<option value="${c.id}">${c.icon} ${c.name}</option>`).join("");
-  sel.onchange = () => {
-    const added = { id: nextId++, categoryId: +sel.value, cn: a.cn, en: a.en };
+  sel.innerHTML = '';
+  const items = [];
+  categories.filter(c => c.parentId == null && c.id !== FAV_CAT_ID).forEach(big => {
+    items.push({ value: big.id, icon: big.icon, label: big.name + '（未分组）', depth: 0 });
+    categories.filter(c => c.parentId === big.id).forEach(sub => {
+      items.push({ value: sub.id, icon: sub.icon, label: sub.name, depth: 1 });
+    });
+  });
+  buildCatSelect(sel, items, null, (val) => {
+    const added = { id: nextId++, categoryId: +val, cn: a.cn, en: a.en };
     tags.push(added);
     Storage.set("tags", tags);
-    sel.classList.add("hidden");
+    sel.style.display = 'none';
     closeModals();
     a.match = { status: "EXACT", matched: added, candidates: [added] };
     renderTabs(); renderLibrary(); renderParseResult();
-  };
-  sel.focus();
+  });
 }
 
 // ========== 图片反推 ==========
@@ -1945,7 +2082,7 @@ async function doReversePrompt() {
       ]},
     ], { model: apiConfig.model });
     if (error) {
-      resultEl.value = `❌ 反推失败\n\n当前配置：${provider.name} / ${apiConfig.model}\n错误详情：${error}\n\n提示：小米 mimo-v2.5 可能不支持 OpenAI 标准的图片格式。试试在设置中添加硅基流动(支持 Vision)的 API 配置。`;
+      resultEl.value = `❌ 反推失败\n\n当前配置：${provider.name} / ${apiConfig.model}\n错误详情：${error}\n\n提示：当前模型，可能不支持 OpenAI 标准的图片格式。试试在设置中添加硅基流动(支持 Vision)的 API 配置。`;
       return;
     }
     resultEl.value = content;
@@ -2075,7 +2212,7 @@ function bindEvents() {
   $("#btn-parse-mode").onclick = () => switchMode("parse");
 
   // 新增按钮（在右侧固定区，不受滚动影响）
-  document.getElementById('btn-add-cat').onclick = openAddCategory;
+  document.getElementById('btn-add-cat').onclick = () => openCatModal({ mode: 'add' });
 
   $("#category-tabs").onclick = (e) => {
     // cat-actions 按钮已 stopPropagation；编辑态也允许切换大类（便于给不同大类管理子类）
@@ -2399,6 +2536,27 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
   };
 
   $("#btn-export").onclick = exportData;
+  
+  // 分类编辑弹窗保存
+  $("#btn-save-category").onclick = () => {
+    const name = $("#cat-modal-name").value.trim();
+    if (!name) return alert("请填写分类名称");
+    const sel = $("#cat-icon-picker .icon-btn.selected");
+    const icon = sel ? sel.dataset.icon : '📁';
+    const st = _catModalState || {};
+    if (st.mode === 'edit' && st.cat) {
+      st.cat.name = name; st.cat.icon = icon;
+      Storage.set("categories", categories);
+    } else if (st.mode === 'add-sub' && st.parentId) {
+      categories.push({ id: nextId++, parentId: st.parentId, name, icon });
+      Storage.set("categories", categories);
+    } else {
+      categories.push({ id: nextId++, parentId: null, name, icon });
+      Storage.set("categories", categories);
+    }
+    renderTabs(); renderLibrary(); closeModals();
+  };
+  
   $("#btn-import").onclick = () => $("#import-file").click();
   $("#btn-template").onclick = downloadTemplate;
   $("#import-file").onchange = importData;
