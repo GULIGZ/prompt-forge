@@ -1,0 +1,13 @@
+node_modules/
+.DS_Store
+*.log
+$CLAUDE_JOB_DIR/
+.codebuddy/
+.vscode/
+backup/
+*.bak.*
+app-data.json
+insp-items.json
+insp-config.json
+图片文件/
+文件数据/
