@@ -193,7 +193,7 @@ function buildCatSelect(container, list, selectedVal, onChange) {
   const opts = document.createElement('div');
   opts.className = 'cat-select-options hidden';
   const close = () => opts.classList.add('hidden');
-  const renderItem = (item) => renderIcon(item.icon || '📁') + ' ' + (item.label || '');
+  const renderItem = (item) => renderIcon(item.icon || '📁') + ' ' + escapeHtml(item.label || '');
   list.forEach(item => {
     const opt = document.createElement('div');
     opt.className = 'cat-select-option depth-' + (item.depth || 0) + (item.value === selectedVal ? ' selected' : '');
@@ -776,7 +776,7 @@ function renderTabs() {
          </span>`;
 
     return `<div class="${cls.join(' ')}" data-id="${c.id}">
-      ${renderIcon(c.icon)}${c.name}${actions}
+      ${renderIcon(c.icon)}${escapeHtml(c.name)}${actions}
     </div>`;
   }).join("");
 
@@ -790,7 +790,7 @@ function renderTabs() {
 // 标签卡片 HTML（showCat=true 时附带分类标签，用于搜索结果）
 function cardHtml(t, showCat) {
   const cat = categories.find(c => c.id === t.categoryId);
-  const catLabel = (showCat && cat && cat.id !== FAV_CAT_ID) ? `<span class="cat-label">${renderIcon(cat.icon)} ${cat.name}</span>` : "";
+  const catLabel = (showCat && cat && cat.id !== FAV_CAT_ID) ? `<span class="cat-label">${renderIcon(cat.icon)} ${escapeHtml(cat.name)}</span>` : "";
   return `<div class="tag-card ${t.favorited ? 'favorited' : ''}" data-id="${t.id}">
     <span class="fav-dot"></span>
     <span class="cn">${escapeHtml(t.cn)}</span>
@@ -814,7 +814,7 @@ function subcatHeaderHtml(cat, editMode, groupId, isCollapsed, isUngrouped) {
   const edit = (!isUngrouped && editMode)
     ? `<button class="btn-sub-edit" data-id="${cat.id}">${iconSvg('✏️')}</button><button class="btn-sub-del" data-id="${cat.id}">${iconSvg('✕')}</button>`
     : "";
-  return `<div class="subcat-header">${chevron}${renderIcon(cat.icon)}<span class="subcat-name">${cat.name}</span><span class="subcat-actions">${move}${edit}</span></div>`;
+  return `<div class="subcat-header">${chevron}${renderIcon(cat.icon)}<span class="subcat-name">${escapeHtml(cat.name)}</span><span class="subcat-actions">${move}${edit}</span></div>`;
 }
 
 // 子类在兄弟中上/下移位
@@ -903,7 +903,7 @@ function renderCanvas() {
       </div>`;
     }
     return `<div class="tag-chip${t.silent ? ' silent' : ''}${inLib ? ' tag-library' : ''}" data-idx="${i}">
-      ${showEn && t.en ? t.en : t.cn}<span class="remove" data-idx="${i}">×</span>
+      ${escapeHtml(showEn && t.en ? t.en : t.cn)}<span class="remove" data-idx="${i}">×</span>
     </div>`;
   }).join("");
   bindCanvasMouseDrag();
@@ -2812,6 +2812,7 @@ $("#modal-confirm .btn-danger").onclick = () => { confirmDeleteFn?.(); $("#modal
       await fetch('/api/reset', { method: 'POST' });
     } catch (_) {}
     localStorage.clear();
+    sessionStorage.clear();
     location.reload();
   };
 

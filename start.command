@@ -35,13 +35,14 @@ if (!dataDir) {
   console.log('数据目录: ' + dataDir);
 }
 
-// 数据文件路径（全部在 dataDir 中）
-const ITEMS_FILE = path.join(dataDir, 'insp-items.json');
-const CONFIG_FILE = path.join(dataDir, 'insp-config.json');
-const APP_DATA_FILE = path.join(dataDir, 'app-data.json');
+// 数据文件路径（动态计算，支持运行时切换 dataDir）
+function itemsFile() { return path.join(dataDir, 'insp-items.json'); }
+function configFile() { return path.join(dataDir, 'insp-config.json'); }
+function appDataFile() { return path.join(dataDir, 'app-data.json'); }
+function tagsFile() { return path.join(dataDir, 'insp-tags.json'); }
 
 // 迁移：如果项目根目录有旧 JSON 文件，移入 dataDir
-['insp-items.json', 'insp-config.json', 'app-data.json'].forEach(f => {
+['insp-items.json', 'insp-config.json', 'app-data.json', 'insp-tags.json'].forEach(f => {
   const oldFile = path.join(ROOT, f);
   const newFile = path.join(dataDir, f);
   if (fs.existsSync(oldFile) && !fs.existsSync(newFile)) {
@@ -60,9 +61,10 @@ function writeJSON(filePath, data) {
 }
 
 // 首次启动：确保 JSON 文件存在
-if (!fs.existsSync(ITEMS_FILE)) writeJSON(ITEMS_FILE, []);
-if (!fs.existsSync(CONFIG_FILE)) writeJSON(CONFIG_FILE, { mode: 'folder', folderName: 'data' });
-if (!fs.existsSync(APP_DATA_FILE)) writeJSON(APP_DATA_FILE, { tags: [], categories: [], canvas: [] });
+if (!fs.existsSync(itemsFile())) writeJSON(itemsFile(), []);
+if (!fs.existsSync(configFile())) writeJSON(configFile(), { mode: 'folder', folderName: 'data' });
+if (!fs.existsSync(appDataFile())) writeJSON(appDataFile(), { tags: [], categories: [], canvas: [] });
+if (!fs.existsSync(tagsFile())) writeJSON(tagsFile(), []);
 
 // 读取请求 body
 function readBody(req) {
@@ -84,34 +86,78 @@ const server = http.createServer(async (req, res) => {
   // ========== API 路由 ==========
   try {
     if (req.method === 'GET' && url.pathname === '/api/items') {
-      const items = readJSON(ITEMS_FILE, []);
+      const items = readJSON(itemsFile(), []);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(items));
       return;
     }
     if (req.method === 'POST' && url.pathname === '/api/items') {
       const body = await readBody(req);
-      const items = JSON.parse(body);
-      writeJSON(ITEMS_FILE, Array.isArray(items) ? items : []);
+      let items;
+      try { items = JSON.parse(body); }
+      catch (_) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: '请求体不是合法的 JSON' }));
+        return;
+      }
+      writeJSON(itemsFile(), Array.isArray(items) ? items : []);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true }));
       return;
     }
     if (req.method === 'GET' && url.pathname === '/api/cfg') {
-      const cfg = readJSON(CONFIG_FILE, { mode: 'local', folderName: '' });
+      const cfg = readJSON(configFile(), { mode: 'local', folderName: '' });
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(cfg));
       return;
     }
     if (req.method === 'POST' && url.pathname === '/api/cfg') {
       const body = await readBody(req);
-      const cfg = JSON.parse(body);
-      writeJSON(CONFIG_FILE, cfg);
-      // 同步更新图片文件夹名称
+      let cfg;
+      try { cfg = JSON.parse(body); }
+      catch (_) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: '请求体不是合法的 JSON' }));
+        return;
+      }
+      writeJSON(configFile(), cfg);
+      // 同步更新数据文件夹
       if (cfg.folderName !== undefined) {
         const newDir = path.join(ROOT, cfg.folderName);
-        if (fs.existsSync(newDir)) dataDir = newDir;
+        if (fs.existsSync(newDir)) {
+          dataDir = newDir;
+          // 持久化到 image-folder.txt，确保重启后仍使用此目录
+          fs.writeFileSync(path.join(ROOT, 'image-folder.txt'), dataDir, 'utf8');
+          // 在新目录中自动创建 JSON 文件
+          if (!fs.existsSync(itemsFile())) writeJSON(itemsFile(), []);
+          if (!fs.existsSync(configFile())) writeJSON(configFile(), cfg);
+          if (!fs.existsSync(appDataFile())) writeJSON(appDataFile(), { tags: [], categories: [], canvas: [] });
+          if (!fs.existsSync(tagsFile())) writeJSON(tagsFile(), []);
+          console.log('已切换数据目录: ' + dataDir);
+        }
       }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true }));
+      return;
+    }
+
+    // ========== /api/tags：灵感标签池 ==========
+    if (req.method === 'GET' && url.pathname === '/api/tags') {
+      const tags = readJSON(tagsFile(), []);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(Array.isArray(tags) ? tags : []));
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/api/tags') {
+      const body = await readBody(req);
+      let tags;
+      try { tags = JSON.parse(body); }
+      catch (_) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: '请求体不是合法的 JSON' }));
+        return;
+      }
+      writeJSON(tagsFile(), Array.isArray(tags) ? tags : []);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true }));
       return;
@@ -119,15 +165,21 @@ const server = http.createServer(async (req, res) => {
 
     // ========== /api/app-data：原子提示词核心数据 ==========
     if (req.method === 'GET' && url.pathname === '/api/app-data') {
-      const data = readJSON(APP_DATA_FILE, { tags: [], categories: [], canvas: [] });
+      const data = readJSON(appDataFile(), { tags: [], categories: [], canvas: [] });
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(data));
       return;
     }
     if (req.method === 'POST' && url.pathname === '/api/app-data') {
       const body = await readBody(req);
-      const data = JSON.parse(body);
-      writeJSON(APP_DATA_FILE, {
+      let data;
+      try { data = JSON.parse(body); }
+      catch (_) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: '请求体不是合法的 JSON' }));
+        return;
+      }
+      writeJSON(appDataFile(), {
         tags: Array.isArray(data.tags) ? data.tags : [],
         categories: Array.isArray(data.categories) ? data.categories : [],
         canvas: Array.isArray(data.canvas) ? data.canvas : []
@@ -146,8 +198,9 @@ const server = http.createServer(async (req, res) => {
         });
       }
       // 重新创建空的数据文件
-      writeJSON(APP_DATA_FILE, { tags: [], categories: [], canvas: [] });
-      writeJSON(ITEMS_FILE, []);
+      writeJSON(appDataFile(), { tags: [], categories: [], canvas: [] });
+      writeJSON(itemsFile(), []);
+      writeJSON(tagsFile(), []);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true, path: dataDir }));
       return;
@@ -206,7 +259,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
   console.log('服务已启动: http://localhost:' + PORT);
-  console.log('数据文件: ' + ITEMS_FILE);
+  console.log('数据文件: ' + itemsFile());
   if (dataDir) console.log('图片目录: ' + dataDir);
 });
 " &

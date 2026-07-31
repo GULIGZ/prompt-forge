@@ -18,11 +18,119 @@
   const LS_ITEMS = 'inspirations';
   const LS_CFG = 'insp_storage_cfg';
   const LS_COLS = 'insp_cols';
+  const LS_TAGS = 'promptForge.inspTags';
+
+  /* ---------- 标签池（独立持久化，不再从图片反推） ---------- */
+  let _tagPoolCache = null;
+
+  function _loadTagPoolCache() {
+    try {
+      const cached = JSON.parse(localStorage.getItem(LS_TAGS));
+      if (cached && Array.isArray(cached)) { _tagPoolCache = cached; return; }
+    } catch (_) {}
+    _tagPoolCache = [];
+  }
+
+  async function _syncTagPoolFromAPI() {
+    if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
+    try {
+      const resp = await fetch('/api/tags');
+      if (resp.ok) {
+        const tags = await resp.json();
+        if (Array.isArray(tags)) {
+          _tagPoolCache = tags;
+          localStorage.setItem(LS_TAGS, JSON.stringify(tags));
+        }
+      }
+    } catch (_) {}
+  }
+
+  function _saveTagPool(tags) {
+    _tagPoolCache = tags;
+    localStorage.setItem(LS_TAGS, JSON.stringify(tags));
+    if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+      postWithRetry('/api/tags', tags);
+    }
+  }
+
+  function addTagsToPool(newTags) {
+    if (!newTags || !newTags.length) return;
+    if (!_tagPoolCache) _loadTagPoolCache();
+    let changed = false;
+    newTags.forEach(t => {
+      if (t && !_tagPoolCache.includes(t)) {
+        _tagPoolCache.push(t);
+        changed = true;
+      }
+    });
+    if (changed) {
+      _tagPoolCache.sort((a, b) => a.localeCompare(b, 'zh'));
+      _saveTagPool(_tagPoolCache);
+    }
+  }
+
+  function removeTagFromPool(tag) {
+    if (!_tagPoolCache) _loadTagPoolCache();
+    const idx = _tagPoolCache.indexOf(tag);
+    if (idx === -1) return;
+    _tagPoolCache.splice(idx, 1);
+    _saveTagPool(_tagPoolCache);
+  }
   const IDB_NAME = 'insp-fs';
   const IDB_STORE = 'handles';
   const IDB_KEY = 'dir';
 
   const supportsFS = typeof window.showDirectoryPicker === 'function';
+
+  /* ---------- 同步通知栏 ---------- */
+  let _syncBar = null;
+  function _getSyncBar() {
+    if (_syncBar) return _syncBar;
+    _syncBar = document.createElement('div');
+    _syncBar.className = 'insp-sync-bar hidden';
+    _syncBar.innerHTML = `<span class="insp-sync-bar-msg"></span><button class="insp-sync-bar-retry" type="button">重试</button><button class="insp-sync-bar-close" type="button">×</button>`;
+    document.body.appendChild(_syncBar);
+    _syncBar.querySelector('.insp-sync-bar-close').addEventListener('click', () => _syncBar.classList.add('hidden'));
+    return _syncBar;
+  }
+  let _syncWarningTimer = null;
+  function showSyncWarning(retryFn) {
+    const bar = _getSyncBar();
+    bar.querySelector('.insp-sync-bar-msg').textContent = '数据同步失败，仅保存在本地';
+    const retryBtn = bar.querySelector('.insp-sync-bar-retry');
+    const newBtn = retryBtn.cloneNode(true);
+    retryBtn.parentNode.replaceChild(newBtn, retryBtn);
+    newBtn.addEventListener('click', () => {
+      bar.classList.add('hidden');
+      retryFn();
+    });
+    bar.classList.remove('hidden');
+    clearTimeout(_syncWarningTimer);
+    _syncWarningTimer = setTimeout(() => bar.classList.add('hidden'), 8000);
+  }
+
+  /* ---------- POST 重试（最多 3 次，间隔 800ms） ---------- */
+  function postWithRetry(url, body) {
+    let attempts = 0;
+    const maxAttempts = 3;
+    function attempt() {
+      return fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      }).then(r => { if (!r.ok) throw new Error(r.status); });
+    }
+    function run() {
+      attempts++;
+      return attempt().catch(() => {
+        if (attempts < maxAttempts) {
+          return new Promise(resolve => setTimeout(resolve, 800)).then(run);
+        }
+        showSyncWarning(() => run());
+      });
+    }
+    run();
+  }
 
   /* ---------- localStorage 元数据 ---------- */
   function getItems() {
@@ -31,13 +139,9 @@
   }
   function saveItems(items) {
     localStorage.setItem(LS_ITEMS, JSON.stringify(items));
-    // 异步同步到本地服务器 JSON 文件（不阻塞、忽略错误）
+    // 异步同步到本地服务器 JSON 文件（自动重试，失败时通知）
     if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-      fetch('/api/items', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(items)
-      }).catch(() => {});
+      postWithRetry('/api/items', items);
     }
   }
   function getCfg() {
@@ -46,13 +150,9 @@
   }
   function setCfg(cfg) {
     localStorage.setItem(LS_CFG, JSON.stringify(cfg));
-    // 异步同步到本地服务器 JSON 文件
+    // 异步同步到本地服务器 JSON 文件（自动重试，失败时通知）
     if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
-      fetch('/api/cfg', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(cfg)
-      }).catch(() => {});
+      postWithRetry('/api/cfg', cfg);
     }
   }
 
@@ -61,16 +161,22 @@
     if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') return;
     try {
       const localItems = getItems();
-      const localCfg = getCfg();
       // 拉取灵感数据
       const itemsResp = await fetch('/api/items');
       if (itemsResp.ok) {
         const items = await itemsResp.json();
-        if (Array.isArray(items) && items.length > 0) {
-          localStorage.setItem(LS_ITEMS, JSON.stringify(items));
-        } else if (localItems.length > 0) {
-          // 服务器为空但本地有数据 → 迁移到服务器
-          saveItems(localItems);
+        if (Array.isArray(items)) {
+          if (items.length > 0) {
+            // 服务器有数据 → 更新 localStorage
+            localStorage.setItem(LS_ITEMS, JSON.stringify(items));
+          } else if (localItems.length > 0 && !sessionStorage.getItem('_migrated_insp')) {
+            // 首次启动且服务器为空 → 迁移一次 localStorage 到服务器
+            sessionStorage.setItem('_migrated_insp', '1');
+            saveItems(localItems);
+          } else {
+            // 重置后服务器为空 → 清空 localStorage 保持一致
+            localStorage.removeItem(LS_ITEMS);
+          }
         }
       }
       // 拉取配置
@@ -84,6 +190,20 @@
     } catch (e) {
       console.warn('API 同步失败，使用本地缓存:', e.message);
     }
+
+    // 同步标签池
+    await _syncTagPoolFromAPI();
+
+    // 历史迁移：如果标签池为空但图片有标签，从图片汇总一次
+    if (!_tagPoolCache || _tagPoolCache.length === 0) {
+      const items = getItems();
+      const set = new Set();
+      items.forEach(it => (it.tags || []).forEach(t => set.add(t)));
+      if (set.size > 0) {
+        _tagPoolCache = Array.from(set).sort((a, b) => a.localeCompare(b, 'zh'));
+        _saveTagPool(_tagPoolCache);
+      }
+    }
   }
   function getCols() {
     const n = parseInt(localStorage.getItem(LS_COLS), 10);
@@ -91,11 +211,10 @@
   }
   function setCols(n) { localStorage.setItem(LS_COLS, String(n)); }
 
-  /* ---------- 提取所有历史标签（用于自动联想） ---------- */
+  /* ---------- 提取所有历史标签（读标签池，不再遍历图片） ---------- */
   function getAllTags() {
-    const set = new Set();
-    getItems().forEach(it => (it.tags || []).forEach(t => set.add(t)));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, 'zh'));
+    if (!_tagPoolCache) _loadTagPoolCache();
+    return _tagPoolCache;
   }
 
   /* ---------- IndexedDB：持久化目录句柄 ---------- */
@@ -201,6 +320,9 @@
             <span class="insp-col-label"><span id="insp-col-count">5</span> 列</span>
             <button class="insp-col-btn" id="insp-col-inc" type="button">+</button>
           </div>
+          <button class="insp-tag-manage-btn" id="insp-tag-manage" type="button" title="标签管理">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+          </button>
           <div class="insp-search">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
             <input id="insp-search-input" type="text" placeholder="搜索提示词或标签…">
@@ -275,6 +397,17 @@
         </div>
       </div>
     </div>
+
+    <div class="modal hidden" id="insp-tag-manage-modal">
+      <div class="modal-content insp-tag-manage-content">
+        <h3 class="insp-modal-title">标签管理</h3>
+        <div class="insp-tag-manage-list" id="insp-tag-manage-list"></div>
+        <div class="insp-tag-manage-empty hidden" id="insp-tag-manage-empty">暂无标签，收藏灵感并添加标签后这里会出现标签列表。</div>
+        <div class="modal-actions" style="display:flex;gap:10px;margin-top:14px;">
+          <button class="btn-cancel" id="insp-tag-manage-close" type="button" style="flex:1;">关闭</button>
+        </div>
+      </div>
+    </div>
   `;
 
   /* ---------- DOM 引用 ---------- */
@@ -286,6 +419,11 @@
   const colInc = $('#insp-col-inc');
   const fabAdd = $('#insp-fab-add');
   const fabTop = $('#insp-fab-top');
+  const tagManageBtn = $('#insp-tag-manage');
+  const tagManageModal = $('#insp-tag-manage-modal');
+  const tagManageList = $('#insp-tag-manage-list');
+  const tagManageEmpty = $('#insp-tag-manage-empty');
+  const tagManageClose = $('#insp-tag-manage-close');
 
   const detail = $('#insp-detail');
   const detailImg = $('#insp-detail-img');
@@ -334,6 +472,7 @@
   function selectSuggestion(tag) {
     if (tag && !modalTags.includes(tag)) {
       modalTags.push(tag);
+      addTagsToPool([tag]);
       renderTagChips();
     }
     tagInput.value = '';
@@ -669,7 +808,10 @@
       }
       // 否则输入新标签
       const v = tagInput.value.trim().replace(/,$/, '');
-      if (v && !modalTags.includes(v)) modalTags.push(v);
+      if (v && !modalTags.includes(v)) {
+        modalTags.push(v);
+        addTagsToPool([v]);
+      }
       tagInput.value = '';
       renderTagChips();
       showSuggestions('');
@@ -755,6 +897,7 @@
       items.push({ id: uid(), prompt, tags: modalTags.slice(), image, storage, createdAt: Date.now() });
     }
     saveItems(items);
+    addTagsToPool(modalTags);
     closeModal();
     renderMasonry();
   });
@@ -845,6 +988,69 @@
     noteEl.className = 'insp-storage-note warn';
     noteEl.textContent = '请通过 start.command 打开应用以使用此功能。';
   }
+
+  /* ============================================================
+     标签管理
+     ============================================================ */
+  function openTagManage() {
+    renderTagManageList();
+    tagManageModal.classList.remove('hidden');
+  }
+  function closeTagManage() {
+    tagManageModal.classList.add('hidden');
+  }
+
+  function renderTagManageList() {
+    const allTags = getAllTags();
+    if (allTags.length === 0) {
+      tagManageList.innerHTML = '';
+      tagManageEmpty.classList.remove('hidden');
+      return;
+    }
+    tagManageEmpty.classList.add('hidden');
+    // 统计每个标签被多少图片使用
+    const items = getItems();
+    const usage = {};
+    items.forEach(it => (it.tags || []).forEach(t => { usage[t] = (usage[t] || 0) + 1; }));
+    tagManageList.innerHTML = allTags.map(t => {
+      const count = usage[t] || 0;
+      return `<span class="insp-tag-manage-chip">
+        ${esc(t)} <em class="insp-tag-manage-chip-count">${count}</em>
+        <button class="insp-tag-manage-chip-del" data-tag="${esc(t)}" type="button" title="删除标签">×</button>
+      </span>`;
+    }).join('');
+    // 绑定删除事件
+    tagManageList.querySelectorAll('.insp-tag-manage-chip-del').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tag = btn.dataset.tag;
+        deleteTag(tag);
+      });
+    });
+  }
+
+  function deleteTag(tag) {
+    showInspConfirm(`确定删除标签「${tag}」吗？该标签将从标签池和所有图片中移除。`, () => {
+      // 1. 从标签池移除
+      removeTagFromPool(tag);
+      // 2. 从所有图片的 tags 中移除
+      const items = getItems();
+      let changed = false;
+      items.forEach(it => {
+        if (it.tags && it.tags.includes(tag)) {
+          it.tags = it.tags.filter(t => t !== tag);
+          changed = true;
+        }
+      });
+      if (changed) saveItems(items);
+      // 3. 刷新管理列表和瀑布流
+      renderTagManageList();
+      renderMasonry();
+    });
+  }
+
+  tagManageBtn.addEventListener('click', openTagManage);
+  tagManageClose.addEventListener('click', closeTagManage);
+  tagManageModal.addEventListener('click', (e) => { if (e.target === tagManageModal) closeTagManage(); });
 
   /* ============================================================
      导航切换（不改动 app.js）
