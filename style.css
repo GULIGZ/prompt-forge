@@ -339,6 +339,13 @@ main { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 }
 .insert-bar.visible { opacity: 1; transform: scaleY(1); }
 
+/* 拖拽期间禁用过渡动画，避免 push 让位动画与光标追赶形成反馈振荡（光标飘忽） */
+body.dragging .insert-bar,
+body.dragging .push-left,
+body.dragging .push-right {
+  transition: none !important;
+}
+
 .tab.push-left {
   transform: translateX(-12px);
   transition: transform 0.2s var(--ease);
